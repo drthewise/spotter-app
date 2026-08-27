@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, Dimensions, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Image, Dimensions, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MapPin, Dumbbell } from 'lucide-react-native';
+import { MapPin, Dumbbell, Info, ChevronUp, ShieldCheck } from 'lucide-react-native';
 import { UserProfile } from '../types';
 import { COLORS, BORDER_RADIUS, SPACING } from '../constants/theme';
-import { GymBadge } from './GymBadge';
-import { ReliabilityBadge } from './ReliabilityBadge';
-import { ScheduleMatrix } from './ScheduleMatrix';
+import { ProfileDetailsModal } from './ProfileDetailsModal';
 import { CURRENT_USER } from '../data/mockData';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -15,10 +13,17 @@ const CARD_HEIGHT = SCREEN_HEIGHT * 0.68;
 interface ProfileCardProps {
   profile: UserProfile;
   isTopCard?: boolean;
+  onRequestSpot?: () => void;
+  onConnect?: () => void;
 }
 
-export const ProfileCard: React.FC<ProfileCardProps> = ({ profile }) => {
+export const ProfileCard: React.FC<ProfileCardProps> = ({
+  profile,
+  onRequestSpot,
+  onConnect,
+}) => {
   const [photoIndex, setPhotoIndex] = useState(0);
+  const [detailsVisible, setDetailsVisible] = useState(false);
 
   const nextPhoto = () => {
     if (photoIndex < profile.photos.length - 1) {
@@ -44,7 +49,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile }) => {
     <View style={styles.card}>
       <Image source={imageSource} style={styles.image} resizeMode="cover" />
 
-      {/* Full-card left/right touch zones for cycling photos across top, middle, and bottom of card */}
+      {/* Full-Card Left/Right Photo Tap Zones */}
       <View style={styles.touchOverlay}>
         <TouchableOpacity
           style={styles.touchLeft}
@@ -58,6 +63,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile }) => {
         />
       </View>
 
+      {/* Pagination Bar */}
       {profile.photos.length > 1 && (
         <View style={styles.pagination} pointerEvents="none">
           {profile.photos.map((_, idx) => (
@@ -72,83 +78,73 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile }) => {
         </View>
       )}
 
+      {/* Clean, Minimal Bottom Overlay */}
       <LinearGradient
-        colors={['transparent', 'rgba(9, 10, 15, 0.35)', 'rgba(9, 10, 15, 0.92)', '#090A0F']}
-        locations={[0, 0.35, 0.72, 1.0]}
-        style={styles.gradient}
-        pointerEvents="none"
+        colors={['transparent', 'rgba(9, 10, 15, 0.45)', 'rgba(9, 10, 15, 0.95)']}
+        locations={[0, 0.4, 1.0]}
+        style={styles.bottomGradient}
+        pointerEvents="box-none"
       >
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-          pointerEvents="none"
-        >
-          <View style={styles.badgeRow}>
-            <GymBadge
-              brand={profile.primaryGym.brand}
-              branchName={profile.primaryGym.branchName}
-              isSameGym={isSameGym}
-              visibilityTier={profile.privacy.gymVisibility}
-            />
-            <ReliabilityBadge
-              score={profile.reliabilityScore}
-              completedWorkouts={profile.completedWorkoutsCount}
-            />
+        <View style={styles.infoContainer} pointerEvents="box-none">
+          {/* Top Row: Name, Age + Expand Info Button */}
+          <View style={styles.nameRow} pointerEvents="box-none">
+            <View style={styles.nameCol} pointerEvents="none">
+              <Text style={styles.name}>
+                {profile.name}, <Text style={styles.age}>{profile.age}</Text>
+              </Text>
+            </View>
+
+            {/* Expand Details Button */}
+            <TouchableOpacity
+              style={styles.expandButton}
+              onPress={() => setDetailsVisible(true)}
+              activeOpacity={0.8}
+            >
+              <Info size={16} color="#FFFFFF" style={{ marginRight: 4 }} />
+              <ChevronUp size={16} color="#FFFFFF" />
+            </TouchableOpacity>
           </View>
 
-          <View style={styles.titleRow}>
-            <Text style={styles.name}>
-              {profile.name}, <Text style={styles.age}>{profile.age}</Text>
-            </Text>
-            <View style={styles.distanceBadge}>
-              <MapPin size={12} color={COLORS.textSecondary} style={{ marginRight: 4 }} />
-              <Text style={styles.distanceText}>
+          {/* Second Row: Gym & Distance Pill */}
+          <View style={styles.pillRow} pointerEvents="none">
+            <View style={[styles.gymPill, isSameGym && styles.sameGymPill]}>
+              <View style={[styles.gymDot, isSameGym && styles.sameGymDot]} />
+              <Text style={[styles.gymPillText, isSameGym && styles.sameGymPillText]}>
+                {isSameGym ? `${profile.primaryGym.brand} (Same Gym)` : profile.primaryGym.brand}
+              </Text>
+            </View>
+
+            <View style={styles.distancePill}>
+              <MapPin size={11} color={COLORS.textSecondary} style={{ marginRight: 3 }} />
+              <Text style={styles.distancePillText}>
                 {profile.privacy.distanceFuzzing ? profile.fuzzedDistanceText : profile.distanceMiles + ' mi'}
               </Text>
             </View>
           </View>
 
-          <View style={styles.fitnessRow}>
-            <View style={styles.splitBadge}>
-              <Dumbbell size={13} color={COLORS.primary} style={{ marginRight: 5 }} />
-              <Text style={styles.splitText}>{profile.workoutSplit}</Text>
+          {/* Third Row: Split & Reliability Badges */}
+          <View style={styles.statsPillRow} pointerEvents="none">
+            <View style={styles.splitPill}>
+              <Dumbbell size={12} color={COLORS.primary} style={{ marginRight: 4 }} />
+              <Text style={styles.splitPillText}>{profile.workoutSplit} • {profile.experienceLevel}</Text>
             </View>
-            <View style={styles.experienceBadge}>
-              <Text style={styles.experienceText}>{profile.experienceLevel}</Text>
-            </View>
-          </View>
 
-          <Text style={styles.bio}>
-            {profile.bio}
-          </Text>
-
-          <View style={styles.tagContainer}>
-            {profile.primaryModalities.map((mod) => (
-              <View key={mod} style={styles.tag}>
-                <Text style={styles.tagText}>{mod}</Text>
-              </View>
-            ))}
-          </View>
-
-          <View style={styles.vibeCard}>
-            <View style={styles.vibeRow}>
-              <Text style={styles.vibeLabel}>🎯 Spotting Style:</Text>
-              <Text style={styles.vibeValue}>{profile.spottingStyle}</Text>
-            </View>
-            <View style={styles.vibeRow}>
-              <Text style={styles.vibeLabel}>⚡ Gym Energy:</Text>
-              <Text style={styles.vibeValue}>{profile.gymEnergy}</Text>
+            <View style={styles.reliabilityPill}>
+              <ShieldCheck size={12} color="#FBBF24" style={{ marginRight: 4 }} />
+              <Text style={styles.reliabilityPillText}>{profile.reliabilityScore}%</Text>
             </View>
           </View>
-
-          <ScheduleMatrix
-            userSchedule={CURRENT_USER.schedule}
-            partnerSchedule={profile.schedule}
-            isMasked={profile.privacy.scheduleVisibility === 'overlap_only'}
-            overlapScore={88}
-          />
-        </ScrollView>
+        </View>
       </LinearGradient>
+
+      {/* Expanded Profile Dossier Modal */}
+      <ProfileDetailsModal
+        visible={detailsVisible}
+        profile={profile}
+        onClose={() => setDetailsVisible(false)}
+        onRequestSpot={onRequestSpot}
+        onConnect={onConnect}
+      />
     </View>
   );
 };
@@ -204,46 +200,98 @@ const styles = StyleSheet.create({
   pageDotActive: {
     backgroundColor: '#FFFFFF',
   },
-  gradient: {
+  bottomGradient: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    height: '75%',
-    paddingHorizontal: SPACING.lg,
-    paddingBottom: SPACING.md,
+    height: '35%',
     justifyContent: 'flex-end',
-    zIndex: 3,
+    paddingHorizontal: SPACING.lg,
+    paddingBottom: SPACING.lg,
+    zIndex: 5,
   },
-  scrollContent: {
-    paddingTop: 40,
-    paddingBottom: 10,
+  infoContainer: {
+    width: '100%',
   },
-  badgeRow: {
+  nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: SPACING.sm,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
     justifyContent: 'space-between',
     marginBottom: 6,
   },
+  nameCol: {
+    flex: 1,
+  },
   name: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: '800',
-    color: COLORS.textPrimary,
+    color: '#FFFFFF',
     letterSpacing: -0.5,
+    textShadowColor: 'rgba(0, 0, 0, 0.7)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   age: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '500',
-    color: COLORS.textSecondary,
+    color: 'rgba(255, 255, 255, 0.85)',
   },
-  distanceBadge: {
+  expandButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: BORDER_RADIUS.full,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    zIndex: 20,
+  },
+  pillRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 6,
+  },
+  gymPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: BORDER_RADIUS.full,
+  },
+  sameGymPill: {
+    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.4)',
+  },
+  gymDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: COLORS.textMuted,
+    marginRight: 6,
+  },
+  sameGymDot: {
+    backgroundColor: '#10B981',
+  },
+  gymPillText: {
+    color: COLORS.textPrimary,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  sameGymPillText: {
+    color: '#34D399',
+    fontWeight: '700',
+  },
+  distancePill: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
@@ -251,90 +299,44 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: BORDER_RADIUS.full,
   },
-  distanceText: {
+  distancePillText: {
     color: COLORS.textSecondary,
     fontSize: 11,
-    fontWeight: '600',
-  },
-  fitnessRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: SPACING.sm,
-  },
-  splitBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: BORDER_RADIUS.full,
-    borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.3)',
-  },
-  splitText: {
-    color: COLORS.primary,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  experienceBadge: {
-    backgroundColor: 'rgba(59, 130, 246, 0.15)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: BORDER_RADIUS.full,
-    borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.3)',
-  },
-  experienceText: {
-    color: '#60A5FA',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  bio: {
-    fontSize: 13,
-    lineHeight: 18,
-    color: '#E2E8F0',
-    marginBottom: SPACING.sm,
-  },
-  tagContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: SPACING.sm,
-  },
-  tag: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
-  },
-  tagText: {
-    color: COLORS.textSecondary,
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  vibeCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    borderRadius: BORDER_RADIUS.md,
-    padding: SPACING.sm + 2,
-    marginVertical: SPACING.xs,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
-  },
-  vibeRow: {
-    marginBottom: 4,
-  },
-  vibeLabel: {
-    color: COLORS.textMuted,
-    fontSize: 11,
-    fontWeight: '700',
-    marginBottom: 1,
-  },
-  vibeValue: {
-    color: COLORS.textPrimary,
-    fontSize: 12,
     fontWeight: '500',
+  },
+  statsPillRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  splitPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: BORDER_RADIUS.full,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.25)',
+  },
+  splitPillText: {
+    color: COLORS.primary,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  reliabilityPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: BORDER_RADIUS.full,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.3)',
+  },
+  reliabilityPillText: {
+    color: '#FBBF24',
+    fontSize: 11,
+    fontWeight: '700',
   },
 });

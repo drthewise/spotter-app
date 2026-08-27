@@ -145,7 +145,11 @@ export const CardDeck: React.FC<CardDeckProps> = ({
       <View style={styles.cardArea}>
         {currentIndex + 1 < profiles.length && (
           <View style={[styles.cardContainer, styles.nextCard]}>
-            <ProfileCard profile={profiles[currentIndex + 1]} />
+            <ProfileCard
+              profile={profiles[currentIndex + 1]}
+              onRequestSpot={() => setSuperSpotModalVisible(true)}
+              onConnect={() => forceSwipe('right')}
+            />
           </View>
         )}
 
@@ -166,7 +170,12 @@ export const CardDeck: React.FC<CardDeckProps> = ({
             <Text style={styles.passStampText}>PASS</Text>
           </Animated.View>
 
-          <ProfileCard profile={currentProfile} isTopCard />
+          <ProfileCard
+            profile={currentProfile}
+            isTopCard
+            onRequestSpot={() => setSuperSpotModalVisible(true)}
+            onConnect={() => forceSwipe('right')}
+          />
         </Animated.View>
       </View>
 
