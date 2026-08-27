@@ -109,4 +109,5 @@ export interface Match {
   unreadCount: number;
   activeSession?: WorkoutSession;
   scheduleOverlapScore: number;
+  messages?: ChatMessage[];
 }

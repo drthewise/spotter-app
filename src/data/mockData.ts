@@ -43,7 +43,7 @@ export const CURRENT_USER: UserProfile = {
 };
 
 export const MOCK_PROFILES: UserProfile[] = [
-  // 1. Maya - Asian, Advanced, Attractiveness: 9/10, Distance: 0.4 mi (Garfield)
+  // 1. Maya
   {
     id: 'user_maya',
     name: 'Maya',
@@ -85,7 +85,7 @@ export const MOCK_PROFILES: UserProfile[] = [
     },
   },
 
-  // 2. Tariq - Black, Advanced, Attractiveness: 8.5/10, Distance: 0.6 mi (Garfield)
+  // 2. Tariq
   {
     id: 'user_tariq',
     name: 'Tariq',
@@ -127,7 +127,7 @@ export const MOCK_PROFILES: UserProfile[] = [
     },
   },
 
-  // 3. Gianna - Latina, Intermediate, Attractiveness: 9/10, Distance: 1.4 mi (Clifton)
+  // 3. Gianna
   {
     id: 'user_gianna',
     name: 'Gianna',
@@ -169,7 +169,7 @@ export const MOCK_PROFILES: UserProfile[] = [
     },
   },
 
-  // 4. Anthony - Latino, Advanced, Attractiveness: 8/10, Distance: 0.5 mi (Garfield)
+  // 4. Anthony
   {
     id: 'user_anthony',
     name: 'Anthony',
@@ -211,7 +211,7 @@ export const MOCK_PROFILES: UserProfile[] = [
     },
   },
 
-  // 5. Priya - South Asian, Intermediate, Attractiveness: 8.5/10, Distance: 4.8 mi (Paramus)
+  // 5. Priya
   {
     id: 'user_priya',
     name: 'Priya',
@@ -253,7 +253,7 @@ export const MOCK_PROFILES: UserProfile[] = [
     },
   },
 
-  // 6. Marcus - Black, Elite Powerlifter (365 bench, 545 squat), Attractiveness: 8/10, Distance: 0.5 mi (Garfield)
+  // 6. Marcus
   {
     id: 'user_marcus',
     name: 'Marcus',
@@ -295,7 +295,7 @@ export const MOCK_PROFILES: UserProfile[] = [
     },
   },
 
-  // 7. Sarah - Caucasian, Advanced Bodybuilder, Attractiveness: 8/10, Distance: 0.7 mi (Garfield)
+  // 7. Sarah
   {
     id: 'user_sarah',
     name: 'Sarah',
@@ -337,7 +337,7 @@ export const MOCK_PROFILES: UserProfile[] = [
     },
   },
 
-  // 8. David - Caucasian, Elite Athlete / HYROX, Attractiveness: 8.5/10, Distance: 3.2 mi (Saddle Brook)
+  // 8. David
   {
     id: 'user_david',
     name: 'David',
@@ -379,7 +379,7 @@ export const MOCK_PROFILES: UserProfile[] = [
     },
   },
 
-  // 9. Jessica - Caucasian, Intermediate / 6 AM Club, Attractiveness: 8/10, Distance: 1.8 mi (Clifton)
+  // 9. Jessica
   {
     id: 'user_jessica',
     name: 'Jessica',
@@ -421,7 +421,7 @@ export const MOCK_PROFILES: UserProfile[] = [
     },
   },
 
-  // 10. Mike - Caucasian, Heavy Powerlifter, Attractiveness: 7.5/10, Distance: 0.6 mi (Garfield)
+  // 10. Mike
   {
     id: 'user_mike',
     name: 'Mike',
@@ -462,7 +462,7 @@ export const MOCK_PROFILES: UserProfile[] = [
     },
   },
 
-  // 11. Brianna - Caucasian, Beginner, Attractiveness: 7/10, Distance: 0.5 mi (Garfield Planet Fitness)
+  // 11. Brianna
   {
     id: 'user_brianna',
     name: 'Brianna',
@@ -503,7 +503,7 @@ export const MOCK_PROFILES: UserProfile[] = [
     },
   },
 
-  // 12. Richie - Caucasian, Intermediate Bro Split, Attractiveness: 6.5/10, Distance: 0.5 mi (Garfield Retro)
+  // 12. Richie
   {
     id: 'user_richie',
     name: 'Richie',
@@ -546,7 +546,7 @@ export const MOCK_PROFILES: UserProfile[] = [
     },
   },
 
-  // 13. Elena - Female Fitness Athlete, Attractiveness: 8.5/10, Distance: 12.4 mi (Hoboken)
+  // 13. Elena
   {
     id: 'user_elena',
     name: 'Elena',
@@ -587,7 +587,7 @@ export const MOCK_PROFILES: UserProfile[] = [
     },
   },
 
-  // 14. Alex - Male Powerlifter, Attractiveness: 8/10, Distance: 8.5 mi (Hackensack)
+  // 14. Alex
   {
     id: 'user_alex',
     name: 'Alex',
@@ -672,11 +672,12 @@ export const MOCK_BEACONS: GymBeacon[] = [
 ];
 
 export const MOCK_MATCHES: Match[] = [
+  // Match 1: Maya - Heavy Barbell Bench & Squat PR Spotting Session
   {
     id: 'match_1',
     partner: MOCK_PROFILES[0], // Maya
     matchedAt: 'Yesterday',
-    lastMessage: 'Awesome, see you on bench station 3 at 6 PM!',
+    lastMessage: 'Awesome, see you on bench station 3 at 6 PM! 🏋️‍♀️',
     lastMessageTime: '5:12 PM',
     unreadCount: 1,
     scheduleOverlapScore: 92,
@@ -686,17 +687,51 @@ export const MOCK_MATCHES: Match[] = [
       scheduledDate: 'Today',
       scheduledTime: '6:00 PM',
       gymName: 'Retro Fitness - Garfield',
-      splitFocus: 'Chest & Heavy Triceps',
+      splitFocus: 'Heavy Flat Bench & Incline DBs',
       userCheckedIn: true,
       partnerCheckedIn: false,
       status: 'scheduled',
     },
+    messages: [
+      {
+        id: 'maya_1',
+        senderId: 'user_maya',
+        text: 'Hey Dave! Saw you train heavy compounds at Retro Garfield too. What are you hitting this week?',
+        timestamp: 'Yesterday 4:15 PM',
+      },
+      {
+        id: 'maya_2',
+        senderId: 'user_me',
+        text: 'Hey Maya! Doing Push day tomorrow at 6 PM. Going for a heavy bench single (275 lbs), need someone on lift-off.',
+        timestamp: 'Yesterday 4:30 PM',
+      },
+      {
+        id: 'maya_3',
+        senderId: 'user_maya',
+        text: 'Count me in! I am hitting flat bench and incline DBs tomorrow too. I give great lift-offs and never touch the bar early.',
+        timestamp: 'Yesterday 4:45 PM',
+      },
+      {
+        id: 'maya_4',
+        senderId: 'user_me',
+        text: 'Perfect. Let’s claim bench station 3 near the dumbbell rack!',
+        timestamp: 'Yesterday 5:02 PM',
+      },
+      {
+        id: 'maya_5',
+        senderId: 'user_maya',
+        text: 'Awesome, see you on bench station 3 at 6 PM! 🏋️‍♀️',
+        timestamp: '5:12 PM',
+      },
+    ],
   },
+
+  // Match 2: Tariq - Heavy Weighted Dips (+90 lbs) & Calisthenics
   {
     id: 'match_2',
     partner: MOCK_PROFILES[1], // Tariq
     matchedAt: '2 days ago',
-    lastMessage: 'Let’s hit weighted dips and chest on Friday at 5:30!',
+    lastMessage: 'Let’s hit weighted dips and chest on Friday at 5:30! 🔥',
     lastMessageTime: 'Yesterday',
     unreadCount: 0,
     scheduleOverlapScore: 88,
@@ -706,19 +741,184 @@ export const MOCK_MATCHES: Match[] = [
       scheduledDate: 'Friday, Aug 29',
       scheduledTime: '5:30 PM',
       gymName: 'Retro Fitness - Garfield',
-      splitFocus: 'Heavy Push & Dips',
+      splitFocus: 'Heavy Push & Weighted Dips (+90 lbs)',
       userCheckedIn: false,
       partnerCheckedIn: false,
       status: 'scheduled',
     },
+    messages: [
+      {
+        id: 'tariq_1',
+        senderId: 'user_tariq',
+        text: 'Yo Dave, respect on the PPL split. You ever throw weighted dips or calisthenics into your Push days?',
+        timestamp: '2 days ago 2:10 PM',
+      },
+      {
+        id: 'tariq_2',
+        senderId: 'user_me',
+        text: 'Yeah man! Usually finish chest with dips. Looking to build up to 2 plates (+90 lbs) on the dip belt.',
+        timestamp: '2 days ago 2:25 PM',
+      },
+      {
+        id: 'tariq_3',
+        senderId: 'user_tariq',
+        text: 'Nice! I am running +90 lb sets this Friday at 5:30 PM at Retro Garfield. I got the dip belt and liquid chalk if you want to run sets together.',
+        timestamp: 'Yesterday 1:15 PM',
+      },
+      {
+        id: 'tariq_4',
+        senderId: 'user_me',
+        text: 'Definitely down. Friday 5:30 PM works great for me, let’s get it.',
+        timestamp: 'Yesterday 1:40 PM',
+      },
+      {
+        id: 'tariq_5',
+        senderId: 'user_tariq',
+        text: 'Let’s hit weighted dips and chest on Friday at 5:30! 🔥',
+        timestamp: 'Yesterday 2:05 PM',
+      },
+    ],
   },
+
+  // Match 3: Gianna - RDL Form & Glute Hypertrophy
   {
     id: 'match_3',
     partner: MOCK_PROFILES[2], // Gianna
     matchedAt: '3 days ago',
-    lastMessage: 'Great lift today, you crushed those RDL sets!',
+    lastMessage: 'Great lift today, you crushed those RDL sets! 💪',
     lastMessageTime: 'Oct 22',
     unreadCount: 0,
     scheduleOverlapScore: 85,
+    messages: [
+      {
+        id: 'gianna_1',
+        senderId: 'user_gianna',
+        text: 'Hey Dave! Saw you train near Garfield/Clifton. Always looking for gym buddies who keep their form strict on leg days!',
+        timestamp: '3 days ago 11:20 AM',
+      },
+      {
+        id: 'gianna_2',
+        senderId: 'user_me',
+        text: 'Hey Gianna! Absolutely, form over ego lifting every time. How’s your training split looking this week?',
+        timestamp: '3 days ago 11:45 AM',
+      },
+      {
+        id: 'gianna_3',
+        senderId: 'user_gianna',
+        text: 'Hit heavy barbell RDLs and cable kickbacks! Thanks for the tip on hinging at the hips instead of bending the knees early.',
+        timestamp: '3 days ago 1:10 PM',
+      },
+      {
+        id: 'gianna_4',
+        senderId: 'user_me',
+        text: 'Haha anytime, you made those 185 lb sets look easy!',
+        timestamp: '3 days ago 1:30 PM',
+      },
+      {
+        id: 'gianna_5',
+        senderId: 'user_gianna',
+        text: 'Great lift today, you crushed those RDL sets! 💪',
+        timestamp: '3 days ago 2:15 PM',
+      },
+    ],
+  },
+
+  // Match 4: Anthony - Heavy 100 lb Incline Dumbbell Spotting
+  {
+    id: 'match_4',
+    partner: MOCK_PROFILES[3], // Anthony
+    matchedAt: '4 days ago',
+    lastMessage: 'On my way from the locker room now, let’s get it! 💯',
+    lastMessageTime: 'Tuesday',
+    unreadCount: 0,
+    scheduleOverlapScore: 90,
+    messages: [
+      {
+        id: 'anthony_1',
+        senderId: 'user_anthony',
+        text: 'Yo Dave! Saw your beacon for Retro Garfield. You still need a spotter for heavy incline DB presses?',
+        timestamp: 'Tuesday 6:10 PM',
+      },
+      {
+        id: 'anthony_2',
+        senderId: 'user_me',
+        text: 'Yo Anthony! Yeah man, working with the 100s today. Need someone to spot at the wrists and help kick them up on set 1.',
+        timestamp: 'Tuesday 6:14 PM',
+      },
+      {
+        id: 'anthony_3',
+        senderId: 'user_anthony',
+        text: 'I got you bro. I am warming up near the cable crossovers right now, meet me by the heavy DB rack in 5.',
+        timestamp: 'Tuesday 6:18 PM',
+      },
+      {
+        id: 'anthony_4',
+        senderId: 'user_me',
+        text: 'On my way from the locker room now, let’s get it! 💯',
+        timestamp: 'Tuesday 6:22 PM',
+      },
+    ],
+  },
+
+  // Match 5: Marcus - Competitive Powerlifter (5/3/1 Meet Prep)
+  {
+    id: 'match_5',
+    partner: MOCK_PROFILES[5], // Marcus
+    matchedAt: '5 days ago',
+    lastMessage: 'Appreciate that man, solid spotters are rare. See you Saturday at 10.',
+    lastMessageTime: 'Monday',
+    unreadCount: 0,
+    scheduleOverlapScore: 94,
+    messages: [
+      {
+        id: 'marcus_1',
+        senderId: 'user_marcus',
+        text: 'What’s up Dave. Prepping for the USAPL meet in November. Running heavy 5/3/1 squats on Saturday morning. Need an experienced spotter behind the bar.',
+        timestamp: 'Monday 9:00 AM',
+      },
+      {
+        id: 'marcus_2',
+        senderId: 'user_me',
+        text: 'Hey Marcus, respect on the meet prep! I’ll be in Retro Saturday at 10 AM. I have spotted powerlifting comps before, will stay tight and follow bar path.',
+        timestamp: 'Monday 9:25 AM',
+      },
+      {
+        id: 'marcus_3',
+        senderId: 'user_marcus',
+        text: 'Appreciate that man, solid spotters are rare. See you Saturday at 10.',
+        timestamp: 'Monday 9:40 AM',
+      },
+    ],
+  },
+
+  // Match 6: Brianna - Beginner Friendly Accountability
+  {
+    id: 'match_6',
+    partner: MOCK_PROFILES[10], // Brianna
+    matchedAt: '1 week ago',
+    lastMessage: 'Starting with goblet squats and lat pulldowns! Nice to have accountability 😊',
+    lastMessageTime: 'Last week',
+    unreadCount: 0,
+    scheduleOverlapScore: 82,
+    messages: [
+      {
+        id: 'brianna_1',
+        senderId: 'user_brianna',
+        text: 'Hi Dave! I saw you lift around Garfield. I am pretty new to free weights at Planet Fitness and trying to stay consistent 3x a week after work!',
+        timestamp: 'Last week',
+      },
+      {
+        id: 'brianna_2',
+        senderId: 'user_me',
+        text: 'Hi Brianna! That’s awesome, consistency is 90% of the battle. What routine are you running?',
+        timestamp: 'Last week',
+      },
+      {
+        id: 'brianna_3',
+        senderId: 'user_brianna',
+        text: 'Starting with goblet squats and lat pulldowns! Nice to have accountability 😊',
+        timestamp: 'Last week',
+      },
+    ],
   }
 ];

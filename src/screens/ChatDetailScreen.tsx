@@ -22,28 +22,20 @@ interface ChatDetailScreenProps {
 }
 
 export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBack }) => {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: '1',
-      senderId: match.partner.id,
-      text: `Hey Dave! Saw you train at ${match.partner.primaryGym.brand} too. What are you hitting this week?`,
-      timestamp: 'Yesterday 4:15 PM',
-    },
-    {
-      id: '2',
-      senderId: CURRENT_USER.id,
-      text: "Hey! Doing heavy Push day tomorrow at 6 PM. Going for a heavy bench single, need someone on lift-off.",
-      timestamp: 'Yesterday 4:30 PM',
-    },
-    {
-      id: '3',
-      senderId: match.partner.id,
-      text: "Awesome, see you on bench station 3 at 6 PM!",
-      timestamp: '5:12 PM',
-    },
-  ]);
+  const defaultMessages: ChatMessage[] = match.messages && match.messages.length > 0
+    ? match.messages
+    : [
+        {
+          id: 'init_1',
+          senderId: match.partner.id,
+          text: 'Hey Dave! Saw you train at ' + match.partner.primaryGym.brand + '. What split are you running this week?',
+          timestamp: 'Yesterday',
+        },
+      ];
+
+  const [messages, setMessages] = useState<ChatMessage[]>(defaultMessages);
   const [inputText, setInputText] = useState('');
-  const [checkedIn, setCheckedIn] = useState(false);
+  const [checkedIn, setCheckedIn] = useState(match.activeSession?.userCheckedIn || false);
 
   const handleSend = () => {
     if (!inputText.trim()) return;
@@ -55,11 +47,12 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
       timestamp: 'Just now',
     };
 
-    setMessages([...messages, newMsg]);
+    setMessages((prev) => [...prev, newMsg]);
     setInputText('');
   };
 
   const partnerPhotoSrc = typeof match.partner.photos[0] === 'string' ? { uri: match.partner.photos[0] } : match.partner.photos[0];
+  const session = match.activeSession;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -78,22 +71,34 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
         </View>
       </View>
 
-      <View style={styles.workoutBanner}>
-        <View style={styles.bannerLeft}>
-          <Dumbbell size={18} color={COLORS.primary} />
-          <View style={{ marginLeft: 8 }}>
-            <Text style={styles.bannerTitle}>Thursday Push Day @ 6:00 PM</Text>
-            <Text style={styles.bannerSub}>${match.partner.primaryGym.brand} - Station 3 • In-Gym Geofence Active</Text>
+      {session ? (
+        <View style={styles.workoutBanner}>
+          <View style={styles.bannerLeft}>
+            <Dumbbell size={18} color={COLORS.primary} />
+            <View style={{ marginLeft: 8 }}>
+              <Text style={styles.bannerTitle}>{session.scheduledDate} @ {session.scheduledTime}</Text>
+              <Text style={styles.bannerSub}>{session.splitFocus} • {session.gymName}</Text>
+            </View>
+          </View>
+          <TouchableOpacity
+            style={[styles.checkInBtn, checkedIn && styles.checkInBtnDone]}
+            onPress={() => setCheckedIn(!checkedIn)}
+          >
+            <CheckCircle size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
+            <Text style={styles.checkInBtnText}>{checkedIn ? 'Checked In' : 'I Am Here'}</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={[styles.workoutBanner, styles.noSessionBanner]}>
+          <View style={styles.bannerLeft}>
+            <Dumbbell size={16} color={COLORS.textSecondary} />
+            <View style={{ marginLeft: 8 }}>
+              <Text style={styles.noSessionTitle}>No Locked-In Session Yet</Text>
+              <Text style={styles.bannerSub}>Coordinate a workout time below or propose a spot</Text>
+            </View>
           </View>
         </View>
-        <TouchableOpacity
-          style={[styles.checkInBtn, checkedIn && styles.checkInBtnDone]}
-          onPress={() => setCheckedIn(true)}
-        >
-          <CheckCircle size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
-          <Text style={styles.checkInBtnText}>{checkedIn ? 'Checked In' : 'I Am Here'}</Text>
-        </TouchableOpacity>
-      </View>
+      )}
 
       <ScrollView contentContainerStyle={styles.messagesList} showsVerticalScrollIndicator={false}>
         {messages.map((msg) => {
@@ -118,7 +123,7 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
-            placeholder="Type workout details or split questions..."
+            placeholder={'Message ' + match.partner.name + '...'}
             placeholderTextColor={COLORS.textMuted}
             value={inputText}
             onChangeText={setInputText}
@@ -191,6 +196,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(16, 185, 129, 0.25)',
   },
+  noSessionBanner: {
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+  },
   bannerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -200,6 +209,11 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary,
     fontSize: 12,
     fontWeight: '700',
+  },
+  noSessionTitle: {
+    color: COLORS.textSecondary,
+    fontSize: 12,
+    fontWeight: '600',
   },
   bannerSub: {
     color: COLORS.textSecondary,
