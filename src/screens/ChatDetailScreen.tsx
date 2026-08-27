@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -22,20 +22,30 @@ interface ChatDetailScreenProps {
 }
 
 export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBack }) => {
-  const defaultMessages: ChatMessage[] = match.messages && match.messages.length > 0
-    ? match.messages
-    : [
-        {
-          id: 'init_1',
-          senderId: match.partner.id,
-          text: 'Hey Dave! Saw you train at ' + match.partner.primaryGym.brand + '. What split are you running this week?',
-          timestamp: 'Yesterday',
-        },
-      ];
+  const getInitialMessages = (m: Match): ChatMessage[] => {
+    if (m.messages && m.messages.length > 0) {
+      return m.messages;
+    }
+    return [
+      {
+        id: 'init_' + m.id,
+        senderId: m.partner.id,
+        text: 'Hey Dave! Saw you train at ' + m.partner.primaryGym.brand + '. What split are you running this week?',
+        timestamp: 'Yesterday',
+      },
+    ];
+  };
 
-  const [messages, setMessages] = useState<ChatMessage[]>(defaultMessages);
+  const [messages, setMessages] = useState<ChatMessage[]>(() => getInitialMessages(match));
   const [inputText, setInputText] = useState('');
   const [checkedIn, setCheckedIn] = useState(match.activeSession?.userCheckedIn || false);
+
+  // When match changes, update local state
+  useEffect(() => {
+    setMessages(getInitialMessages(match));
+    setCheckedIn(match.activeSession?.userCheckedIn || false);
+    setInputText('');
+  }, [match.id]);
 
   const handleSend = () => {
     if (!inputText.trim()) return;
@@ -56,6 +66,7 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} style={styles.backBtn}>
           <ArrowLeft size={20} color={COLORS.textPrimary} />
@@ -71,6 +82,7 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
         </View>
       </View>
 
+      {/* Workout Session Banner */}
       {session ? (
         <View style={styles.workoutBanner}>
           <View style={styles.bannerLeft}>
@@ -100,6 +112,7 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
         </View>
       )}
 
+      {/* Messages List */}
       <ScrollView contentContainerStyle={styles.messagesList} showsVerticalScrollIndicator={false}>
         {messages.map((msg) => {
           const isMe = msg.senderId === CURRENT_USER.id;
@@ -119,6 +132,7 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
         })}
       </ScrollView>
 
+      {/* Input Field */}
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={styles.inputContainer}>
           <TextInput

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text, SafeAreaView } from 'react-native';
-import { Flame, Radio, MessageSquare, User, Dumbbell } from 'lucide-react-native';
+import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { Flame, Radio, MessageSquare, User } from 'lucide-react-native';
 import { StatusBar } from 'expo-status-bar';
 import { DiscoveryScreen } from './src/screens/DiscoveryScreen';
 import { BeaconScreen } from './src/screens/BeaconScreen';
@@ -9,7 +9,7 @@ import { ProfileScreen } from './src/screens/ProfileScreen';
 import { ChatDetailScreen } from './src/screens/ChatDetailScreen';
 import { MOCK_MATCHES } from './src/data/mockData';
 import { Match } from './src/types';
-import { COLORS, BORDER_RADIUS, SPACING } from './src/constants/theme';
+import { COLORS } from './src/constants/theme';
 
 type TabType = 'discover' | 'beacon' | 'matches' | 'profile';
 
@@ -30,6 +30,7 @@ export default function App() {
       <View style={styles.screenArea}>
         {activeChatMatch ? (
           <ChatDetailScreen
+            key={activeChatMatch.id}
             match={activeChatMatch}
             onBack={() => setActiveChatMatch(null)}
           />
