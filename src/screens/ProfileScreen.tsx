@@ -18,12 +18,29 @@ import {
 import { CURRENT_USER } from '../data/mockData';
 import { ScheduleMatrix } from '../components/ScheduleMatrix';
 import { COLORS, BORDER_RADIUS, SPACING } from '../constants/theme';
+import { ScheduleDay, TimeSlot } from '../types';
 
 export const ProfileScreen: React.FC = () => {
   const [ghostMode, setGhostMode] = useState(CURRENT_USER.privacy.ghostMode);
   const [womenOnly, setWomenOnly] = useState(CURRENT_USER.privacy.womenOnlyMode);
   const [distanceFuzzing, setDistanceFuzzing] = useState(CURRENT_USER.privacy.distanceFuzzing);
   const [gymTier, setGymTier] = useState(CURRENT_USER.privacy.gymVisibility);
+  const [mySchedule, setMySchedule] = useState<ScheduleDay[]>(CURRENT_USER.schedule);
+
+  const handleToggleSlot = (day: 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat' | 'Sun', slotId: TimeSlot) => {
+    setMySchedule((prev) => {
+      const existingDay = prev.find((d) => d.day === day);
+      if (existingDay) {
+        const has = existingDay.slots.includes(slotId);
+        const newSlots = has
+          ? existingDay.slots.filter((s) => s !== slotId)
+          : [...existingDay.slots, slotId];
+        return prev.map((d) => (d.day === day ? { ...d, slots: newSlots } : d));
+      } else {
+        return [...prev, { day, slots: [slotId] }];
+      }
+    });
+  };
 
   const userPhotoSrc = typeof CURRENT_USER.photos[0] === 'string' ? { uri: CURRENT_USER.photos[0] } : CURRENT_USER.photos[0];
 
@@ -52,6 +69,20 @@ export const ProfileScreen: React.FC = () => {
           </View>
         </View>
 
+        {/* Weekly Schedule Availability Matrix */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderRow}>
+            <Clock size={16} color={COLORS.primary} />
+            <Text style={styles.sectionHeading}>MY WEEKLY WORKOUT AVAILABILITY</Text>
+          </View>
+          <ScheduleMatrix
+            userSchedule={mySchedule}
+            editable={true}
+            onToggleSlot={handleToggleSlot}
+          />
+        </View>
+
+        {/* Privacy & Anti-Doxxing Controls */}
         <View style={styles.section}>
           <View style={styles.sectionHeaderRow}>
             <Shield size={16} color={COLORS.primary} />
@@ -126,14 +157,6 @@ export const ProfileScreen: React.FC = () => {
               </View>
             </View>
           </View>
-        </View>
-
-        <View style={styles.section}>
-          <View style={styles.sectionHeaderRow}>
-            <Clock size={16} color={COLORS.primary} />
-            <Text style={styles.sectionHeading}>MY WEEKLY SCHEDULE MATRIX</Text>
-          </View>
-          <ScheduleMatrix userSchedule={CURRENT_USER.schedule} />
         </View>
       </ScrollView>
     </SafeAreaView>
