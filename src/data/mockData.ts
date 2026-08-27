@@ -8,9 +8,9 @@ export const CURRENT_USER: UserProfile = {
   gender: 'male',
   bio: 'Focusing on heavy compounds (PPL split) and building consistency. Looking for a solid spotter on bench/squat days.',
   photos: [
-    PROFILE_IMAGES.anthony,
-    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80',
-    PROFILE_IMAGES.alex,
+    PROFILE_IMAGES.anthony_full,
+    PROFILE_IMAGES.anthony_face,
+    PROFILE_IMAGES.anthony_upper,
   ],
   primaryGym: {
     brand: 'Retro Fitness',
@@ -51,9 +51,9 @@ export const MOCK_PROFILES: UserProfile[] = [
     gender: 'female',
     bio: 'Leg day & barbell hip thrusts! Running PPL. Love taking gym mirror fit checks and hitting PRs. Need someone to spot on heavy barbell bench & squats!',
     photos: [
-      PROFILE_IMAGES.maya,
-      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80',
-      PROFILE_IMAGES.elena,
+      PROFILE_IMAGES.maya_full,
+      PROFILE_IMAGES.maya_face,
+      PROFILE_IMAGES.maya_upper,
     ],
     primaryGym: {
       brand: 'Retro Fitness',
@@ -93,9 +93,9 @@ export const MOCK_PROFILES: UserProfile[] = [
     gender: 'male',
     bio: 'Oversized pump covers & heavy dumbbells. Boxing rounds and weighted dips (+90 lbs). Looking for an intense workout partner who doesn’t spend 5 minutes between sets on their phone.',
     photos: [
-      PROFILE_IMAGES.tariq,
-      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=800&q=80',
-      PROFILE_IMAGES.marcus,
+      PROFILE_IMAGES.tariq_full,
+      PROFILE_IMAGES.tariq_face,
+      PROFILE_IMAGES.tariq_upper,
     ],
     primaryGym: {
       brand: 'Retro Fitness',
@@ -135,9 +135,9 @@ export const MOCK_PROFILES: UserProfile[] = [
     gender: 'female',
     bio: 'Glute hypertrophy & RDL form enthusiast! Matching workout sets, pre-workout energy, and heavy cable kickbacks. Looking for a dedicated gym buddy to keep each other accountable.',
     photos: [
-      PROFILE_IMAGES.gianna,
-      'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&q=80',
-      PROFILE_IMAGES.jessica,
+      PROFILE_IMAGES.gianna_full,
+      PROFILE_IMAGES.gianna_face,
+      PROFILE_IMAGES.gianna_upper,
     ],
     primaryGym: {
       brand: 'LA Fitness',
@@ -169,48 +169,7 @@ export const MOCK_PROFILES: UserProfile[] = [
     },
   },
 
-  // 4. Kevin - Asian, Beginner / Relatable Everyday Lifter, Attractiveness: 6.5/10, Distance: 0.8 mi (Garfield Planet Fitness)
-  {
-    id: 'user_kevin',
-    name: 'Kevin',
-    age: 24,
-    gender: 'male',
-    bio: 'Just joined Planet Fitness 3 weeks ago! Trying to get consistent and learn dumbbell exercises. A bit intimidated by the free weights area, would love an encouraging workout partner to learn form with!',
-    photos: [
-      'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?auto=format&fit=crop&w=800&q=80',
-    ],
-    primaryGym: {
-      brand: 'Planet Fitness',
-      branchName: 'Planet Fitness - Garfield',
-      neighborhood: 'Garfield, NJ',
-    },
-    distanceMiles: 0.8,
-    fuzzedDistanceText: '< 1 mile away (Garfield)',
-    experienceLevel: 'Beginner',
-    primaryModalities: ['General Fitness'],
-    workoutSplit: 'Full Body',
-    schedule: [
-      { day: 'Mon', slots: ['evening'] },
-      { day: 'Wed', slots: ['evening'] },
-      { day: 'Fri', slots: ['evening'] },
-    ],
-    spottingStyle: 'Safety first, cheering you on, happy to learn',
-    gymEnergy: 'Humble, beginner friendly, zero ego',
-    intent: 'platonic_only',
-    reliabilityScore: 95.0,
-    completedWorkoutsCount: 12,
-    privacy: {
-      ghostMode: false,
-      womenOnlyMode: false,
-      gymVisibility: 'match_only',
-      scheduleVisibility: 'overlap_only',
-      distanceFuzzing: true,
-    },
-  },
-
-  // 5. Anthony - Latino, Advanced, Attractiveness: 8/10, Distance: 0.5 mi (Garfield)
+  // 4. Anthony - Latino, Advanced, Attractiveness: 8/10, Distance: 0.5 mi (Garfield)
   {
     id: 'user_anthony',
     name: 'Anthony',
@@ -218,9 +177,9 @@ export const MOCK_PROFILES: UserProfile[] = [
     gender: 'male',
     bio: 'Bodybuilding at Retro on Outwater Ln in Garfield. Heavy dumbbell bench (100s), lateral raises, and cable drop sets. Need a consistent spotter who knows how to spot at the wrists.',
     photos: [
-      PROFILE_IMAGES.anthony,
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80',
-      PROFILE_IMAGES.richie,
+      PROFILE_IMAGES.anthony_full,
+      PROFILE_IMAGES.anthony_face,
+      PROFILE_IMAGES.anthony_upper,
     ],
     primaryGym: {
       brand: 'Retro Fitness',
@@ -252,7 +211,7 @@ export const MOCK_PROFILES: UserProfile[] = [
     },
   },
 
-  // 6. Priya - South Asian, Intermediate, Attractiveness: 8.5/10, Distance: 4.8 mi (Paramus)
+  // 5. Priya - South Asian, Intermediate, Attractiveness: 8.5/10, Distance: 4.8 mi (Paramus)
   {
     id: 'user_priya',
     name: 'Priya',
@@ -260,9 +219,9 @@ export const MOCK_PROFILES: UserProfile[] = [
     gender: 'female',
     bio: 'Kettlebell flows, core mobility, and progressive barbell strength. Training 4 days a week. Looking for a positive workout partner for early morning or midday sessions!',
     photos: [
-      PROFILE_IMAGES.priya,
-      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80',
-      PROFILE_IMAGES.brianna,
+      PROFILE_IMAGES.priya_full,
+      PROFILE_IMAGES.priya_face,
+      PROFILE_IMAGES.priya_upper,
     ],
     primaryGym: {
       brand: 'Lifetime Fitness',
@@ -294,48 +253,7 @@ export const MOCK_PROFILES: UserProfile[] = [
     },
   },
 
-  // 7. Brandon - Black, Beginner / Working off Dad Bod, Attractiveness: 7/10, Distance: 2.2 mi (Passaic Crunch)
-  {
-    id: 'user_brandon',
-    name: 'Brandon',
-    age: 32,
-    gender: 'male',
-    bio: 'Working off the desk-job dad bod! 3 days a week at Crunch Passaic. Mixing 25 min incline walking with dumbbell presses and lat pulldowns. Need someone to keep me accountable so I dont bail.',
-    photos: [
-      'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=800&q=80',
-    ],
-    primaryGym: {
-      brand: 'Crunch Fitness',
-      branchName: 'Crunch - Passaic Main Ave',
-      neighborhood: 'Passaic, NJ',
-    },
-    distanceMiles: 2.2,
-    fuzzedDistanceText: '2–3 miles away (Passaic)',
-    experienceLevel: 'Beginner',
-    primaryModalities: ['General Fitness', 'Running / Cardio'],
-    workoutSplit: 'Full Body',
-    schedule: [
-      { day: 'Mon', slots: ['evening'] },
-      { day: 'Wed', slots: ['evening'] },
-      { day: 'Fri', slots: ['evening'] },
-    ],
-    spottingStyle: 'Encouraging, high five after every set',
-    gymEnergy: 'Easygoing, committed, no pressure',
-    intent: 'platonic_only',
-    reliabilityScore: 94.0,
-    completedWorkoutsCount: 18,
-    privacy: {
-      ghostMode: false,
-      womenOnlyMode: false,
-      gymVisibility: 'match_only',
-      scheduleVisibility: 'overlap_only',
-      distanceFuzzing: true,
-    },
-  },
-
-  // 8. Marcus - Black, Elite Powerlifter (365 bench, 545 squat), Attractiveness: 8/10, Distance: 0.5 mi (Garfield)
+  // 6. Marcus - Black, Elite Powerlifter (365 bench, 545 squat), Attractiveness: 8/10, Distance: 0.5 mi (Garfield)
   {
     id: 'user_marcus',
     name: 'Marcus',
@@ -343,9 +261,9 @@ export const MOCK_PROFILES: UserProfile[] = [
     gender: 'male',
     bio: 'Competitive powerlifter (365 bench, 545 squat, 600 deadlift). Prepping for winter USAPL meet. Need a serious spotter who knows how to lift-off and spot heavy singles.',
     photos: [
-      PROFILE_IMAGES.marcus,
-      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=800&q=80',
-      PROFILE_IMAGES.tariq,
+      PROFILE_IMAGES.marcus_full,
+      PROFILE_IMAGES.marcus_face,
+      PROFILE_IMAGES.marcus_upper,
     ],
     primaryGym: {
       brand: 'Retro Fitness',
@@ -377,91 +295,7 @@ export const MOCK_PROFILES: UserProfile[] = [
     },
   },
 
-  // 9. Chloe - Asian, Beginner / Cute gym fit, Attractiveness: 7.5/10, Distance: 1.7 mi (Clifton)
-  {
-    id: 'user_chloe',
-    name: 'Chloe',
-    age: 23,
-    gender: 'female',
-    bio: 'Transitioning from the stairmaster to the dumbbell floor! Focusing on glute bridges, shoulder presses, and building upper body strength. Looking for a workout buddy to share equipment.',
-    photos: [
-      'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=800&q=80',
-    ],
-    primaryGym: {
-      brand: 'LA Fitness',
-      branchName: 'LA Fitness - Clifton Rt 3',
-      neighborhood: 'Clifton, NJ',
-    },
-    distanceMiles: 1.7,
-    fuzzedDistanceText: '1–2 miles away (Clifton)',
-    experienceLevel: 'Beginner',
-    primaryModalities: ['General Fitness', 'Bodybuilding'],
-    workoutSplit: 'Upper / Lower',
-    schedule: [
-      { day: 'Tue', slots: ['evening'] },
-      { day: 'Thu', slots: ['evening'] },
-      { day: 'Sat', slots: ['midday'] },
-    ],
-    spottingStyle: 'Light spotting on dumbbells, checking form videos',
-    gymEnergy: 'Cute gym sets, chill music, good vibes',
-    intent: 'platonic_only',
-    reliabilityScore: 97.0,
-    completedWorkoutsCount: 22,
-    privacy: {
-      ghostMode: false,
-      womenOnlyMode: true,
-      gymVisibility: 'match_only',
-      scheduleVisibility: 'overlap_only',
-      distanceFuzzing: true,
-    },
-  },
-
-  // 10. Jin-Woo - Korean, Advanced Aesthetic Bodybuilder, Attractiveness: 9.5/10, Distance: 6.8 mi (Paramus / Hackensack)
-  {
-    id: 'user_jinwoo',
-    name: 'Jin-Woo',
-    age: 27,
-    gender: 'male',
-    bio: 'High volume bodybuilding split. Heavy incline dumbbell press (95s), lateral raise dropsets, and pull-day back thickness. Strict form and mind-muscle connection.',
-    photos: [
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&w=800&q=80',
-    ],
-    primaryGym: {
-      brand: '24 Hour Fitness',
-      branchName: '24 Hour Fitness - Hackensack',
-      neighborhood: 'Hackensack / Bergen County',
-    },
-    distanceMiles: 6.8,
-    fuzzedDistanceText: '5–8 miles away (Hackensack)',
-    experienceLevel: 'Advanced',
-    primaryModalities: ['Bodybuilding'],
-    workoutSplit: 'Push / Pull / Legs (PPL)',
-    schedule: [
-      { day: 'Mon', slots: ['evening'] },
-      { day: 'Tue', slots: ['evening'] },
-      { day: 'Thu', slots: ['evening'] },
-      { day: 'Fri', slots: ['evening'] },
-      { day: 'Sat', slots: ['midday'] },
-    ],
-    spottingStyle: 'Hand on elbows for dumbbells, forced reps past failure',
-    gymEnergy: 'Focused, strictly business, progress tracking',
-    intent: 'platonic_only',
-    reliabilityScore: 99.0,
-    completedWorkoutsCount: 56,
-    privacy: {
-      ghostMode: false,
-      womenOnlyMode: false,
-      gymVisibility: 'match_only',
-      scheduleVisibility: 'overlap_only',
-      distanceFuzzing: true,
-    },
-  },
-
-  // 11. Sarah - Caucasian, Advanced, Attractiveness: 8/10, Distance: 0.7 mi (Garfield)
+  // 7. Sarah - Caucasian, Advanced Bodybuilder, Attractiveness: 8/10, Distance: 0.7 mi (Garfield)
   {
     id: 'user_sarah',
     name: 'Sarah',
@@ -469,9 +303,9 @@ export const MOCK_PROFILES: UserProfile[] = [
     gender: 'female',
     bio: 'Heavy dumbbell bench, incline presses, and shoulder hypertrophy. 4-day Upper/Lower split. Always looking for someone to push the final 2 reps to failure.',
     photos: [
-      PROFILE_IMAGES.sarah,
-      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80',
-      PROFILE_IMAGES.gianna,
+      PROFILE_IMAGES.sarah_full,
+      PROFILE_IMAGES.sarah_face,
+      PROFILE_IMAGES.sarah_upper,
     ],
     primaryGym: {
       brand: 'Retro Fitness',
@@ -503,7 +337,7 @@ export const MOCK_PROFILES: UserProfile[] = [
     },
   },
 
-  // 12. David - Caucasian, Elite Athlete / HYROX, Attractiveness: 8.5/10, Distance: 3.2 mi (Saddle Brook)
+  // 8. David - Caucasian, Elite Athlete / HYROX, Attractiveness: 8.5/10, Distance: 3.2 mi (Saddle Brook)
   {
     id: 'user_david',
     name: 'David',
@@ -511,9 +345,9 @@ export const MOCK_PROFILES: UserProfile[] = [
     gender: 'male',
     bio: 'HYROX & CrossFit endurance athlete. Turf sled pushes, ski erg intervals, and 5-mile tempo runs. Training for HYROX Doubles. Let’s do partner workouts!',
     photos: [
-      PROFILE_IMAGES.david,
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80',
-      PROFILE_IMAGES.alex,
+      PROFILE_IMAGES.david_full,
+      PROFILE_IMAGES.david_face,
+      PROFILE_IMAGES.david_upper,
     ],
     primaryGym: {
       brand: 'CrossFit GSP',
@@ -545,90 +379,7 @@ export const MOCK_PROFILES: UserProfile[] = [
     },
   },
 
-  // 13. Samantha - Caucasian, Elite Bikini Competitor, Attractiveness: 10/10, Distance: 14.5 mi (Hoboken Equinox)
-  {
-    id: 'user_samantha',
-    name: 'Samantha',
-    age: 28,
-    gender: 'female',
-    bio: 'NPC Bikini competitor in off-season building phase. Heavy hip thrusts, lateral raises, and strict progressive overload. Strictly focused lifting sessions.',
-    photos: [
-      'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&w=800&q=80',
-    ],
-    primaryGym: {
-      brand: 'Equinox',
-      branchName: 'Equinox - Hoboken',
-      neighborhood: 'Hoboken / Hudson County',
-    },
-    distanceMiles: 14.5,
-    fuzzedDistanceText: '12–15 miles away (Hoboken)',
-    experienceLevel: 'Elite Athlete',
-    primaryModalities: ['Bodybuilding'],
-    workoutSplit: 'Upper / Lower',
-    schedule: [
-      { day: 'Mon', slots: ['early_morning'] },
-      { day: 'Wed', slots: ['early_morning'] },
-      { day: 'Fri', slots: ['early_morning'] },
-      { day: 'Sat', slots: ['midday'] },
-    ],
-    spottingStyle: 'Depth check on squats, hand off on heavy dumbbell bench',
-    gymEnergy: 'Focused, competitive, elite standards',
-    intent: 'platonic_only',
-    reliabilityScore: 100.0,
-    completedWorkoutsCount: 68,
-    privacy: {
-      ghostMode: false,
-      womenOnlyMode: true,
-      gymVisibility: 'match_only',
-      scheduleVisibility: 'overlap_only',
-      distanceFuzzing: true,
-    },
-  },
-
-  // 14. Carlos - Latino, Beginner-Intermediate, Attractiveness: 6.5/10, Distance: 11.2 mi (Secaucus)
-  {
-    id: 'user_carlos',
-    name: 'Carlos',
-    age: 30,
-    gender: 'male',
-    bio: 'Lifting 3x a week after work. Doing simple compounds: bench press, cable rows, leg press. Looking for an unpretentious partner to share a rack and stay accountable.',
-    photos: [
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?auto=format&fit=crop&w=800&q=80',
-    ],
-    primaryGym: {
-      brand: 'UFC Gym',
-      branchName: 'UFC Gym - Secaucus',
-      neighborhood: 'Secaucus / Hudson County',
-    },
-    distanceMiles: 11.2,
-    fuzzedDistanceText: '10–12 miles away (Secaucus)',
-    experienceLevel: 'Intermediate',
-    primaryModalities: ['General Fitness', 'Bodybuilding'],
-    workoutSplit: 'Full Body',
-    schedule: [
-      { day: 'Mon', slots: ['evening'] },
-      { day: 'Wed', slots: ['evening'] },
-      { day: 'Fri', slots: ['evening'] },
-    ],
-    spottingStyle: 'Spotting bar cleanly, calm and reliable',
-    gymEnergy: 'Relaxed, friendly, no ego',
-    intent: 'platonic_only',
-    reliabilityScore: 96.0,
-    completedWorkoutsCount: 29,
-    privacy: {
-      ghostMode: false,
-      womenOnlyMode: false,
-      gymVisibility: 'match_only',
-      scheduleVisibility: 'overlap_only',
-      distanceFuzzing: true,
-    },
-  },
-
-  // 15. Jessica - Caucasian, Intermediate, Attractiveness: 8/10, Distance: 1.8 mi (Clifton)
+  // 9. Jessica - Caucasian, Intermediate / 6 AM Club, Attractiveness: 8/10, Distance: 1.8 mi (Clifton)
   {
     id: 'user_jessica',
     name: 'Jessica',
@@ -636,9 +387,9 @@ export const MOCK_PROFILES: UserProfile[] = [
     gender: 'female',
     bio: 'Morning lifter (6 AM club) at LA Fitness on Rt 3 in Clifton. Barbell squats, hip thrusts, and stairmaster intervals. Looking for an early morning accountability buddy!',
     photos: [
-      PROFILE_IMAGES.jessica,
-      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=800&q=80',
-      PROFILE_IMAGES.priya,
+      PROFILE_IMAGES.jessica_full,
+      PROFILE_IMAGES.jessica_face,
+      PROFILE_IMAGES.jessica_upper,
     ],
     primaryGym: {
       brand: 'LA Fitness',
@@ -670,7 +421,7 @@ export const MOCK_PROFILES: UserProfile[] = [
     },
   },
 
-  // 16. Mike - Caucasian, Heavy Lifter, Attractiveness: 7.5/10, Distance: 0.6 mi (Garfield)
+  // 10. Mike - Caucasian, Heavy Powerlifter, Attractiveness: 7.5/10, Distance: 0.6 mi (Garfield)
   {
     id: 'user_mike',
     name: 'Mike',
@@ -678,9 +429,9 @@ export const MOCK_PROFILES: UserProfile[] = [
     gender: 'male',
     bio: 'Heavy bench & squat specialist at Retro Garfield. Looking for a spotter for 315+ bench working sets and safety bar squats. I will spot you on all your heavy sets!',
     photos: [
-      PROFILE_IMAGES.mike,
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80',
-      PROFILE_IMAGES.marcus,
+      PROFILE_IMAGES.mike_full,
+      PROFILE_IMAGES.mike_face,
+      PROFILE_IMAGES.mike_upper,
     ],
     primaryGym: {
       brand: 'Retro Fitness',
@@ -711,48 +462,7 @@ export const MOCK_PROFILES: UserProfile[] = [
     },
   },
 
-  // 17. Jasmine - Black, Intermediate, Attractiveness: 8.5/10, Distance: 0.9 mi (Garfield)
-  {
-    id: 'user_jasmine',
-    name: 'Jasmine',
-    age: 25,
-    gender: 'female',
-    bio: 'Mixing strength training and core stability! Cable pull-throughs, dumbbell goblet squats, and incline walking. Looking for a fun, positive gym partner in Garfield!',
-    photos: [
-      'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=800&q=80',
-    ],
-    primaryGym: {
-      brand: 'Retro Fitness',
-      branchName: 'Retro Fitness - Garfield',
-      neighborhood: 'Garfield, NJ',
-    },
-    distanceMiles: 0.9,
-    fuzzedDistanceText: '< 1 mile away (Garfield)',
-    experienceLevel: 'Intermediate',
-    primaryModalities: ['General Fitness', 'Bodybuilding'],
-    workoutSplit: 'Full Body',
-    schedule: [
-      { day: 'Mon', slots: ['evening'] },
-      { day: 'Wed', slots: ['evening'] },
-      { day: 'Sat', slots: ['midday'] },
-    ],
-    spottingStyle: 'Hype on last reps, form cues on lunges',
-    gymEnergy: 'Upbeat, friendly, high energy playlist',
-    intent: 'platonic_only',
-    reliabilityScore: 99.0,
-    completedWorkoutsCount: 33,
-    privacy: {
-      ghostMode: false,
-      womenOnlyMode: true,
-      gymVisibility: 'match_only',
-      scheduleVisibility: 'overlap_only',
-      distanceFuzzing: true,
-    },
-  },
-
-  // 18. Brianna - Caucasian, Beginner, Attractiveness: 7/10, Distance: 0.5 mi (Garfield Planet Fitness)
+  // 11. Brianna - Caucasian, Beginner, Attractiveness: 7/10, Distance: 0.5 mi (Garfield Planet Fitness)
   {
     id: 'user_brianna',
     name: 'Brianna',
@@ -760,9 +470,9 @@ export const MOCK_PROFILES: UserProfile[] = [
     gender: 'female',
     bio: 'Lifting at Planet Fitness on Passaic St in Garfield. Focused on building consistency, leg workouts, and feeling strong. Looking for a workout friend to hit the gym with after work!',
     photos: [
-      PROFILE_IMAGES.brianna,
-      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=800&q=80',
-      PROFILE_IMAGES.maya,
+      PROFILE_IMAGES.brianna_full,
+      PROFILE_IMAGES.brianna_face,
+      PROFILE_IMAGES.brianna_upper,
     ],
     primaryGym: {
       brand: 'Planet Fitness',
@@ -793,48 +503,7 @@ export const MOCK_PROFILES: UserProfile[] = [
     },
   },
 
-  // 19. Jordan - Black, Advanced Calisthenics & Dunk Plyo, Attractiveness: 9/10, Distance: 18.5 mi (Jersey City)
-  {
-    id: 'user_jordan',
-    name: 'Jordan',
-    age: 26,
-    gender: 'male',
-    bio: 'Weighted pullups (+75 lbs), explosive box jumps, and heavy shoulder presses. Training for vertical jump and functional upper body power. Let’s get an intense session in.',
-    photos: [
-      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=800&q=80',
-    ],
-    primaryGym: {
-      brand: 'Blink Fitness',
-      branchName: 'Blink - Jersey City Journal Sq',
-      neighborhood: 'Jersey City / Hudson County',
-    },
-    distanceMiles: 18.5,
-    fuzzedDistanceText: '15–20 miles away (Jersey City)',
-    experienceLevel: 'Advanced',
-    primaryModalities: ['Calisthenics', 'Bodybuilding'],
-    workoutSplit: 'Upper / Lower',
-    schedule: [
-      { day: 'Tue', slots: ['evening'] },
-      { day: 'Thu', slots: ['evening'] },
-      { day: 'Sat', slots: ['midday'] },
-    ],
-    spottingStyle: 'High energy, checking jump landings, dumbbell handoff',
-    gymEnergy: 'High octane, locked in, heavy music',
-    intent: 'platonic_only',
-    reliabilityScore: 98.0,
-    completedWorkoutsCount: 42,
-    privacy: {
-      ghostMode: false,
-      womenOnlyMode: false,
-      gymVisibility: 'match_only',
-      scheduleVisibility: 'overlap_only',
-      distanceFuzzing: true,
-    },
-  },
-
-  // 20. Richie - Caucasian, Intermediate Bro Split, Attractiveness: 6.5/10, Distance: 0.5 mi (Garfield Retro)
+  // 12. Richie - Caucasian, Intermediate Bro Split, Attractiveness: 6.5/10, Distance: 0.5 mi (Garfield Retro)
   {
     id: 'user_richie',
     name: 'Richie',
@@ -842,9 +511,9 @@ export const MOCK_PROFILES: UserProfile[] = [
     gender: 'male',
     bio: 'Classic 5-day bro split at Retro Garfield (Chest Mon, Back Tue, Shoulders Wed, Arms Thu, Legs Fri). Looking for an old-school lifting buddy who shows up on time.',
     photos: [
-      PROFILE_IMAGES.richie,
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80',
-      PROFILE_IMAGES.mike,
+      PROFILE_IMAGES.richie_full,
+      PROFILE_IMAGES.richie_face,
+      PROFILE_IMAGES.richie_upper,
     ],
     primaryGym: {
       brand: 'Retro Fitness',
@@ -875,6 +544,88 @@ export const MOCK_PROFILES: UserProfile[] = [
       scheduleVisibility: 'overlap_only',
       distanceFuzzing: true,
     },
+  },
+
+  // 13. Elena - Female Fitness Athlete, Attractiveness: 8.5/10, Distance: 12.4 mi (Hoboken)
+  {
+    id: 'user_elena',
+    name: 'Elena',
+    age: 26,
+    gender: 'female',
+    bio: 'Functional strength, kettlebell complexes, and plyometrics. High energy workouts with zero fluff. Looking for an athletic training partner.',
+    photos: [
+      PROFILE_IMAGES.elena_full,
+      PROFILE_IMAGES.elena_face,
+      PROFILE_IMAGES.elena_upper,
+    ],
+    primaryGym: {
+      brand: 'Equinox',
+      branchName: 'Equinox - Hoboken',
+      neighborhood: 'Hoboken / Hudson County',
+    },
+    distanceMiles: 12.4,
+    fuzzedDistanceText: '10–15 miles away (Hoboken)',
+    experienceLevel: 'Advanced',
+    primaryModalities: ['General Fitness', 'Olympic Lifting'],
+    workoutSplit: 'Upper / Lower',
+    schedule: [
+      { day: 'Tue', slots: ['early_morning'] },
+      { day: 'Thu', slots: ['early_morning'] },
+      { day: 'Sat', slots: ['midday'] },
+    ],
+    spottingStyle: 'Form cues, timing intervals, great hype',
+    gymEnergy: 'Athletic, high energy, focused',
+    intent: 'platonic_only',
+    reliabilityScore: 99.0,
+    completedWorkoutsCount: 40,
+    privacy: {
+      ghostMode: false,
+      womenOnlyMode: true,
+      gymVisibility: 'match_only',
+      scheduleVisibility: 'overlap_only',
+      distanceFuzzing: true,
+    },
+  },
+
+  // 14. Alex - Male Powerlifter, Attractiveness: 8/10, Distance: 8.5 mi (Hackensack)
+  {
+    id: 'user_alex',
+    name: 'Alex',
+    age: 28,
+    gender: 'male',
+    bio: 'Chalk on the hands and heavy compound lifts. Squats, bench, and rows. Looking for someone pushing heavy weights.',
+    photos: [
+      PROFILE_IMAGES.alex_full,
+      PROFILE_IMAGES.alex_face,
+      PROFILE_IMAGES.alex_upper,
+    ],
+    primaryGym: {
+      brand: '24 Hour Fitness',
+      branchName: '24 Hour Fitness - Hackensack',
+      neighborhood: 'Hackensack, NJ',
+    },
+    distanceMiles: 8.5,
+    fuzzedDistanceText: '5–10 miles away (Hackensack)',
+    experienceLevel: 'Advanced',
+    primaryModalities: ['Powerlifting', 'Bodybuilding'],
+    workoutSplit: 'Push / Pull / Legs (PPL)',
+    schedule: [
+      { day: 'Mon', slots: ['evening'] },
+      { day: 'Wed', slots: ['evening'] },
+      { day: 'Fri', slots: ['evening'] },
+    ],
+    spottingStyle: 'Solid lift-off assist, spotting wrists',
+    gymEnergy: 'Heavy lifting, locked in',
+    intent: 'platonic_only',
+    reliabilityScore: 97.5,
+    completedWorkoutsCount: 36,
+    privacy: {
+      ghostMode: false,
+      womenOnlyMode: false,
+      gymVisibility: 'match_only',
+      scheduleVisibility: 'overlap_only',
+      distanceFuzzing: true,
+    },
   }
 ];
 
@@ -883,7 +634,7 @@ export const MOCK_BEACONS: GymBeacon[] = [
     id: 'beacon_1',
     userId: 'user_anthony',
     userName: 'Anthony',
-    userPhoto: PROFILE_IMAGES.anthony,
+    userPhoto: PROFILE_IMAGES.anthony_face,
     gymName: 'Retro Fitness - Garfield',
     targetFocus: 'Heavy Incline DB Bench (100 lbs)',
     timeWindowText: 'Today @ 6:30 PM (in 20 mins)',
@@ -896,7 +647,7 @@ export const MOCK_BEACONS: GymBeacon[] = [
     id: 'beacon_2',
     userId: 'user_maya',
     userName: 'Maya',
-    userPhoto: PROFILE_IMAGES.maya,
+    userPhoto: PROFILE_IMAGES.maya_face,
     gymName: 'Retro Fitness - Garfield',
     targetFocus: 'Barbell Squats & Bench PR',
     timeWindowText: 'Tomorrow @ 6:00 PM',
@@ -909,7 +660,7 @@ export const MOCK_BEACONS: GymBeacon[] = [
     id: 'beacon_3',
     userId: 'user_tariq',
     userName: 'Tariq',
-    userPhoto: PROFILE_IMAGES.tariq,
+    userPhoto: PROFILE_IMAGES.tariq_face,
     gymName: 'Retro Fitness - Garfield',
     targetFocus: 'Heavy Weighted Dips (+90 lbs)',
     timeWindowText: 'Friday @ 5:30 PM',

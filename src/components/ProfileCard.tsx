@@ -44,13 +44,22 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile }) => {
     <View style={styles.card}>
       <Image source={imageSource} style={styles.image} resizeMode="cover" />
 
+      {/* Full-card left/right touch zones for cycling photos across top, middle, and bottom of card */}
       <View style={styles.touchOverlay}>
-        <TouchableOpacity style={styles.touchLeft} onPress={prevPhoto} activeOpacity={1} />
-        <TouchableOpacity style={styles.touchRight} onPress={nextPhoto} activeOpacity={1} />
+        <TouchableOpacity
+          style={styles.touchLeft}
+          onPress={prevPhoto}
+          activeOpacity={0.9}
+        />
+        <TouchableOpacity
+          style={styles.touchRight}
+          onPress={nextPhoto}
+          activeOpacity={0.9}
+        />
       </View>
 
       {profile.photos.length > 1 && (
-        <View style={styles.pagination}>
+        <View style={styles.pagination} pointerEvents="none">
           {profile.photos.map((_, idx) => (
             <View
               key={idx}
@@ -67,8 +76,13 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile }) => {
         colors={['transparent', 'rgba(9, 10, 15, 0.35)', 'rgba(9, 10, 15, 0.92)', '#090A0F']}
         locations={[0, 0.35, 0.72, 1.0]}
         style={styles.gradient}
+        pointerEvents="none"
       >
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+          pointerEvents="none"
+        >
           <View style={styles.badgeRow}>
             <GymBadge
               brand={profile.primaryGym.brand}
@@ -160,19 +174,17 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   touchOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: '45%',
+    ...StyleSheet.absoluteFillObject,
     flexDirection: 'row',
-    zIndex: 10,
+    zIndex: 2,
   },
   touchLeft: {
     flex: 1,
+    height: '100%',
   },
   touchRight: {
     flex: 1,
+    height: '100%',
   },
   pagination: {
     position: 'absolute',
@@ -180,7 +192,7 @@ const styles = StyleSheet.create({
     left: 16,
     right: 16,
     flexDirection: 'row',
-    zIndex: 20,
+    zIndex: 10,
   },
   pageDot: {
     flex: 1,
@@ -201,6 +213,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.lg,
     paddingBottom: SPACING.md,
     justifyContent: 'flex-end',
+    zIndex: 3,
   },
   scrollContent: {
     paddingTop: 40,

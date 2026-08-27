@@ -39,8 +39,10 @@ export const CardDeck: React.FC<CardDeckProps> = ({
 
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) > 10 || Math.abs(gesture.dy) > 10,
+      onStartShouldSetPanResponder: () => false,
+      onStartShouldSetPanResponderCapture: () => false,
+      onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) > 8 || Math.abs(gesture.dy) > 8,
+      onMoveShouldSetPanResponderCapture: (_, gesture) => Math.abs(gesture.dx) > 8 || Math.abs(gesture.dy) > 8,
       onPanResponderMove: (_, gesture) => {
         position.setValue({ x: gesture.dx, y: gesture.dy });
       },
@@ -52,6 +54,9 @@ export const CardDeck: React.FC<CardDeckProps> = ({
         } else {
           resetPosition();
         }
+      },
+      onPanResponderTerminate: () => {
+        resetPosition();
       },
     })
   ).current;
@@ -153,11 +158,11 @@ export const CardDeck: React.FC<CardDeckProps> = ({
           ]}
           {...panResponder.panHandlers}
         >
-          <Animated.View style={[styles.stamp, styles.likeStamp, { opacity: likeOpacity }]}>
+          <Animated.View style={[styles.stamp, styles.likeStamp, { opacity: likeOpacity }]} pointerEvents="none">
             <Text style={styles.likeStampText}>CONNECT</Text>
           </Animated.View>
 
-          <Animated.View style={[styles.stamp, styles.passStamp, { opacity: passOpacity }]}>
+          <Animated.View style={[styles.stamp, styles.passStamp, { opacity: passOpacity }]} pointerEvents="none">
             <Text style={styles.passStampText}>PASS</Text>
           </Animated.View>
 
