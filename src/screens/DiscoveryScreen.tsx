@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, Modal, Image } from 'react-native';
-import { SlidersHorizontal, Dumbbell, ShieldAlert, Sparkles, MessageCircle } from 'lucide-react-native';
+import { SlidersHorizontal, Dumbbell, Sparkles, MessageCircle } from 'lucide-react-native';
 import { CardDeck } from '../components/CardDeck';
 import { FilterModal } from '../components/FilterModal';
 import { MOCK_PROFILES, CURRENT_USER } from '../data/mockData';
@@ -21,8 +21,7 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({ onNavigateToCh
 
   const handleSwipeRight = (profile: UserProfile) => {
     console.log('Connected with:', profile.name);
-    // Trigger celebratory match modal on first profile for demo
-    if (profile.id === 'user_1' || Math.random() > 0.5) {
+    if (profile.id === 'user_maya' || Math.random() > 0.5) {
       setMatchedProfile(profile);
     }
   };
@@ -32,11 +31,13 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({ onNavigateToCh
     setMatchedProfile(profile);
   };
 
+  const myPhotoSrc = typeof CURRENT_USER.photos[0] === 'string' ? { uri: CURRENT_USER.photos[0] } : CURRENT_USER.photos[0];
+  const partnerPhotoSrc = matchedProfile ? (typeof matchedProfile.photos[0] === 'string' ? { uri: matchedProfile.photos[0] } : matchedProfile.photos[0]) : null;
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" />
 
-      {/* Top App Header */}
       <View style={styles.header}>
         <View style={styles.logoRow}>
           <View style={styles.logoIcon}>
@@ -53,13 +54,11 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({ onNavigateToCh
         </TouchableOpacity>
       </View>
 
-      {/* Home Gym Header Bar */}
       <View style={styles.gymContextBar}>
         <Text style={styles.gymContextLabel}>Home Base: </Text>
         <Text style={styles.gymContextName}>{CURRENT_USER.primaryGym.branchName}</Text>
       </View>
 
-      {/* Card Swipe Deck */}
       <CardDeck
         profiles={MOCK_PROFILES}
         onSwipeLeft={handleSwipeLeft}
@@ -68,14 +67,12 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({ onNavigateToCh
         onOpenFilter={() => setFilterModalVisible(true)}
       />
 
-      {/* Filter Modal */}
       <FilterModal
         visible={filterModalVisible}
         onClose={() => setFilterModalVisible(false)}
         onApply={(filters) => console.log('Applied filters:', filters)}
       />
 
-      {/* Mutual Match Celebratory Modal */}
       <Modal visible={!!matchedProfile} transparent animationType="fade">
         <View style={styles.matchOverlay}>
           <View style={styles.matchCard}>
@@ -89,17 +86,16 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({ onNavigateToCh
             </Text>
 
             <View style={styles.matchAvatarsRow}>
-              <Image source={{ uri: CURRENT_USER.photos[0] }} style={styles.matchAvatar} />
+              <Image source={myPhotoSrc} style={styles.matchAvatar} />
               <View style={styles.matchDumbbellDivider}>
                 <Dumbbell size={18} color="#FFFFFF" />
               </View>
-              <Image source={{ uri: matchedProfile?.photos[0] }} style={styles.matchAvatar} />
+              {partnerPhotoSrc && <Image source={partnerPhotoSrc} style={styles.matchAvatar} />}
             </View>
 
             <TouchableOpacity
               style={styles.chatNowBtn}
               onPress={() => {
-                const partner = matchedProfile;
                 setMatchedProfile(null);
                 if (onNavigateToChat) onNavigateToChat('match_1');
               }}

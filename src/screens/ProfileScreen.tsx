@@ -11,12 +11,8 @@ import {
 } from 'react-native';
 import {
   Shield,
-  EyeOff,
-  MapPin,
-  Dumbbell,
   Clock,
-  Settings,
-  ChevronRight,
+  Dumbbell,
   ShieldCheck,
 } from 'lucide-react-native';
 import { CURRENT_USER } from '../data/mockData';
@@ -29,6 +25,8 @@ export const ProfileScreen: React.FC = () => {
   const [distanceFuzzing, setDistanceFuzzing] = useState(CURRENT_USER.privacy.distanceFuzzing);
   const [gymTier, setGymTier] = useState(CURRENT_USER.privacy.gymVisibility);
 
+  const userPhotoSrc = typeof CURRENT_USER.photos[0] === 'string' ? { uri: CURRENT_USER.photos[0] } : CURRENT_USER.photos[0];
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
@@ -37,7 +35,7 @@ export const ProfileScreen: React.FC = () => {
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.userCard}>
-          <Image source={{ uri: CURRENT_USER.photos[0] }} style={styles.avatar} />
+          <Image source={userPhotoSrc} style={styles.avatar} />
           <View style={styles.userInfo}>
             <Text style={styles.userName}>{CURRENT_USER.name}, {CURRENT_USER.age}</Text>
             <Text style={styles.gymName}>📍 {CURRENT_USER.primaryGym.branchName}</Text>

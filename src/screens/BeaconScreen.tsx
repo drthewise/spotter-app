@@ -10,7 +10,7 @@ import {
   Modal,
   TextInput,
 } from 'react-native';
-import { Radio, Plus, Clock, Dumbbell, MapPin, Users, Send, AlertCircle, Shield } from 'lucide-react-native';
+import { Radio, Plus, Clock, Dumbbell, Users, Send } from 'lucide-react-native';
 import { MOCK_BEACONS, CURRENT_USER } from '../data/mockData';
 import { GymBeacon } from '../types';
 import { COLORS, BORDER_RADIUS, SPACING } from '../constants/theme';
@@ -21,7 +21,6 @@ export const BeaconScreen: React.FC = () => {
   const [focus, setFocus] = useState('');
   const [timeText, setTimeText] = useState('Today @ 6:30 PM');
   const [desc, setDesc] = useState('');
-  const [isAnonymous, setIsAnonymous] = useState(false);
 
   const handlePostBeacon = () => {
     if (!focus.trim()) return;
@@ -29,10 +28,8 @@ export const BeaconScreen: React.FC = () => {
     const newBeacon: GymBeacon = {
       id: 'beacon_' + Date.now(),
       userId: CURRENT_USER.id,
-      userName: isAnonymous ? 'Anonymous Lifter' : CURRENT_USER.name,
-      userPhoto: isAnonymous
-        ? 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=200'
-        : CURRENT_USER.photos[0],
+      userName: CURRENT_USER.name,
+      userPhoto: CURRENT_USER.photos[0],
       gymName: CURRENT_USER.primaryGym.branchName,
       targetFocus: focus,
       timeWindowText: timeText,
@@ -50,7 +47,6 @@ export const BeaconScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Header */}
       <View style={styles.header}>
         <View style={styles.titleRow}>
           <View style={styles.liveDot} />
@@ -62,7 +58,6 @@ export const BeaconScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Subtitle & Privacy Shield Notice */}
       <View style={styles.noticeBanner}>
         <Radio size={15} color={COLORS.primary} style={{ marginRight: 8 }} />
         <Text style={styles.noticeText}>
@@ -70,60 +65,57 @@ export const BeaconScreen: React.FC = () => {
         </Text>
       </View>
 
-      {/* Feed List */}
       <ScrollView contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
-        {beacons.map((beacon) => (
-          <View key={beacon.id} style={styles.beaconCard}>
-            <View style={styles.cardHeader}>
-              <Image source={{ uri: beacon.userPhoto }} style={styles.avatar} />
-              <View style={styles.headerInfo}>
-                <View style={styles.nameRow}>
-                  <Text style={styles.userName}>{beacon.userName}</Text>
-                  {beacon.isUrgent && (
-                    <View style={styles.urgentBadge}>
-                      <Text style={styles.urgentText}>URGENT SPOT</Text>
-                    </View>
-                  )}
+        {beacons.map((beacon) => {
+          const photoSrc = typeof beacon.userPhoto === 'string' ? { uri: beacon.userPhoto } : beacon.userPhoto;
+          return (
+            <View key={beacon.id} style={styles.beaconCard}>
+              <View style={styles.cardHeader}>
+                <Image source={photoSrc} style={styles.avatar} />
+                <View style={styles.headerInfo}>
+                  <View style={styles.nameRow}>
+                    <Text style={styles.userName}>{beacon.userName}</Text>
+                    {beacon.isUrgent && (
+                      <View style={styles.urgentBadge}>
+                        <Text style={styles.urgentText}>URGENT SPOT</Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={styles.gymName}>📍 {beacon.gymName}</Text>
                 </View>
-                <Text style={styles.gymName}>📍 {beacon.gymName}</Text>
+                <Text style={styles.timeAgo}>{beacon.postedAt}</Text>
               </View>
-              <Text style={styles.timeAgo}>{beacon.postedAt}</Text>
-            </View>
 
-            {/* Target Lift Focus */}
-            <View style={styles.focusContainer}>
-              <Dumbbell size={15} color={COLORS.primary} style={{ marginRight: 6 }} />
-              <Text style={styles.focusText}>{beacon.targetFocus}</Text>
-            </View>
-
-            {/* Time Window */}
-            <View style={styles.timeWindowContainer}>
-              <Clock size={13} color={COLORS.badgeScheduleText} style={{ marginRight: 6 }} />
-              <Text style={styles.timeWindowText}>{beacon.timeWindowText}</Text>
-            </View>
-
-            {/* Description */}
-            <Text style={styles.description}>{beacon.description}</Text>
-
-            {/* Action Bar */}
-            <View style={styles.cardFooter}>
-              <View style={styles.responseCount}>
-                <Users size={14} color={COLORS.textMuted} style={{ marginRight: 4 }} />
-                <Text style={styles.responseText}>{beacon.responsesCount} lifters responded</Text>
+              <View style={styles.focusContainer}>
+                <Dumbbell size={15} color={COLORS.primary} style={{ marginRight: 6 }} />
+                <Text style={styles.focusText}>{beacon.targetFocus}</Text>
               </View>
-              <TouchableOpacity
-                style={styles.spotMeBtn}
-                onPress={() => alert('Sent spot response to ' + beacon.userName + '!')}
-              >
-                <Send size={13} color="#FFFFFF" style={{ marginRight: 6 }} />
-                <Text style={styles.spotMeText}>I Can Spot</Text>
-              </TouchableOpacity>
+
+              <View style={styles.timeWindowContainer}>
+                <Clock size={13} color={COLORS.badgeScheduleText} style={{ marginRight: 6 }} />
+                <Text style={styles.timeWindowText}>{beacon.timeWindowText}</Text>
+              </View>
+
+              <Text style={styles.description}>{beacon.description}</Text>
+
+              <View style={styles.cardFooter}>
+                <View style={styles.responseCount}>
+                  <Users size={14} color={COLORS.textMuted} style={{ marginRight: 4 }} />
+                  <Text style={styles.responseText}>{beacon.responsesCount} lifters responded</Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.spotMeBtn}
+                  onPress={() => alert('Sent spot response to ' + beacon.userName + '!')}
+                >
+                  <Send size={13} color="#FFFFFF" style={{ marginRight: 6 }} />
+                  <Text style={styles.spotMeText}>I Can Spot</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        ))}
+          );
+        })}
       </ScrollView>
 
-      {/* Post Beacon Modal */}
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalSheet}>

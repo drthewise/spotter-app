@@ -11,10 +11,9 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { ArrowLeft, Dumbbell, Calendar, Send, ShieldCheck, CheckCircle, Zap } from 'lucide-react-native';
+import { ArrowLeft, Dumbbell, Send, ShieldCheck, CheckCircle } from 'lucide-react-native';
 import { Match, ChatMessage } from '../types';
 import { COLORS, BORDER_RADIUS, SPACING } from '../constants/theme';
-import { ScheduleMatrix } from '../components/ScheduleMatrix';
 import { CURRENT_USER } from '../data/mockData';
 
 interface ChatDetailScreenProps {
@@ -27,13 +26,13 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
     {
       id: '1',
       senderId: match.partner.id,
-      text: "Hey Dave! Saw you're on PPL at Equinox Williamsburg too. What are you hitting this week?",
+      text: `Hey Dave! Saw you train at ${match.partner.primaryGym.brand} too. What are you hitting this week?`,
       timestamp: 'Yesterday 4:15 PM',
     },
     {
       id: '2',
       senderId: CURRENT_USER.id,
-      text: "Hey! Doing heavy Push day tomorrow at 6 PM. Going for a 315 bench single, need someone on lift-off.",
+      text: "Hey! Doing heavy Push day tomorrow at 6 PM. Going for a heavy bench single, need someone on lift-off.",
       timestamp: 'Yesterday 4:30 PM',
     },
     {
@@ -60,14 +59,15 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
     setInputText('');
   };
 
+  const partnerPhotoSrc = typeof match.partner.photos[0] === 'string' ? { uri: match.partner.photos[0] } : match.partner.photos[0];
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} style={styles.backBtn}>
           <ArrowLeft size={20} color={COLORS.textPrimary} />
         </TouchableOpacity>
-        <Image source={{ uri: match.partner.photos[0] }} style={styles.avatar} />
+        <Image source={partnerPhotoSrc} style={styles.avatar} />
         <View style={styles.headerInfo}>
           <Text style={styles.name}>{match.partner.name}</Text>
           <Text style={styles.gymName}>📍 {match.partner.primaryGym.branchName}</Text>
@@ -78,13 +78,12 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
         </View>
       </View>
 
-      {/* Locked-in Workout Header Action Banner */}
       <View style={styles.workoutBanner}>
         <View style={styles.bannerLeft}>
           <Dumbbell size={18} color={COLORS.primary} />
           <View style={{ marginLeft: 8 }}>
             <Text style={styles.bannerTitle}>Thursday Push Day @ 6:00 PM</Text>
-            <Text style={styles.bannerSub}>Equinox - Station 3 • In-Gym Geofence Active</Text>
+            <Text style={styles.bannerSub}>${match.partner.primaryGym.brand} - Station 3 • In-Gym Geofence Active</Text>
           </View>
         </View>
         <TouchableOpacity
@@ -96,7 +95,6 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
         </TouchableOpacity>
       </View>
 
-      {/* Chat Messages */}
       <ScrollView contentContainerStyle={styles.messagesList} showsVerticalScrollIndicator={false}>
         {messages.map((msg) => {
           const isMe = msg.senderId === CURRENT_USER.id;
@@ -116,7 +114,6 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
         })}
       </ScrollView>
 
-      {/* Input Bar */}
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={styles.inputContainer}>
           <TextInput

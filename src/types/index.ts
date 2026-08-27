@@ -1,4 +1,4 @@
-﻿export type ExperienceLevel = 'Beginner' | 'Intermediate' | 'Advanced' | 'Elite Athlete';
+export type ExperienceLevel = 'Beginner' | 'Intermediate' | 'Advanced' | 'Elite Athlete';
 
 export type Modality = 
   | 'Bodybuilding' 
@@ -28,11 +28,11 @@ export interface ScheduleDay {
 export type GymVisibilityTier = 'exact' | 'brand_only' | 'match_only' | 'hidden';
 
 export interface PrivacySettings {
-  ghostMode: boolean; // Only visible to profiles you swipe right on first
-  womenOnlyMode: boolean; // Only visible to and browsing female lifters
-  gymVisibility: GymVisibilityTier; // How gym appears on public card
+  ghostMode: boolean;
+  womenOnlyMode: boolean;
+  gymVisibility: GymVisibilityTier;
   scheduleVisibility: 'full' | 'overlap_only' | 'match_only';
-  distanceFuzzing: boolean; // Display fuzzed bucket instead of exact distance
+  distanceFuzzing: boolean;
 }
 
 export interface UserProfile {
@@ -41,10 +41,9 @@ export interface UserProfile {
   age: number;
   gender: 'male' | 'female' | 'non-binary';
   bio: string;
-  photos: string[];
+  photos: (string | any)[];
   formCheckVideoUrl?: string;
   
-  // Gym Logistics
   primaryGym: {
     brand: string;
     branchName: string;
@@ -53,7 +52,6 @@ export interface UserProfile {
   distanceMiles: number;
   fuzzedDistanceText: string;
   
-  // Fitness DNA
   experienceLevel: ExperienceLevel;
   primaryModalities: Modality[];
   workoutSplit: WorkoutSplit;
@@ -62,11 +60,9 @@ export interface UserProfile {
   gymEnergy: string;
   intent: 'platonic_only' | 'open_to_dating';
   
-  // Accountability Metrics
   reliabilityScore: number;
   completedWorkoutsCount: number;
   
-  // Privacy
   privacy: PrivacySettings;
 }
 
@@ -74,7 +70,7 @@ export interface GymBeacon {
   id: string;
   userId: string;
   userName: string;
-  userPhoto: string;
+  userPhoto: string | any;
   gymName: string;
   targetFocus: string;
   timeWindowText: string;

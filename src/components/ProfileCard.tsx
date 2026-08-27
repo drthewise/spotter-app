@@ -37,10 +37,12 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile }) => {
   };
 
   const isSameGym = profile.primaryGym.brand === CURRENT_USER.primaryGym.brand;
+  const currentPhoto = profile.photos[photoIndex];
+  const imageSource = typeof currentPhoto === 'string' ? { uri: currentPhoto } : currentPhoto;
 
   return (
     <View style={styles.card}>
-      <Image source={{ uri: profile.photos[photoIndex] }} style={styles.image} resizeMode="cover" />
+      <Image source={imageSource} style={styles.image} resizeMode="cover" />
 
       <View style={styles.touchOverlay}>
         <TouchableOpacity style={styles.touchLeft} onPress={prevPhoto} activeOpacity={1} />
@@ -62,8 +64,8 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile }) => {
       )}
 
       <LinearGradient
-        colors={['transparent', 'rgba(9, 10, 15, 0.4)', 'rgba(9, 10, 15, 0.95)', '#090A0F']}
-        locations={[0, 0.4, 0.75, 1.0]}
+        colors={['transparent', 'rgba(9, 10, 15, 0.35)', 'rgba(9, 10, 15, 0.92)', '#090A0F']}
+        locations={[0, 0.35, 0.72, 1.0]}
         style={styles.gradient}
       >
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>

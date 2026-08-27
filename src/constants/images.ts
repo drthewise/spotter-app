@@ -1,0 +1,16 @@
+export const PROFILE_IMAGES: Record<string, any> = {
+  marcus: require('../../assets/profiles/marcus.jpg'),
+  maya: require('../../assets/profiles/maya.jpg'),
+  tariq: require('../../assets/profiles/tariq.jpg'),
+  gianna: require('../../assets/profiles/gianna.jpg'),
+  anthony: require('../../assets/profiles/anthony.jpg'),
+  priya: require('../../assets/profiles/priya.jpg'),
+  elena: require('../../assets/profiles/elena.jpg'),
+  david: require('../../assets/profiles/david.jpg'),
+  sarah: require('../../assets/profiles/sarah.jpg'),
+  jessica: require('../../assets/profiles/jessica.jpg'),
+  mike: require('../../assets/profiles/mike.jpg'),
+  brianna: require('../../assets/profiles/brianna.jpg'),
+  alex: require('../../assets/profiles/alex.jpg'),
+  richie: require('../../assets/profiles/richie.jpg'),
+};

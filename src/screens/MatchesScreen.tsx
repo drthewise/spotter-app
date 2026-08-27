@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   Image,
 } from 'react-native';
-import { Calendar, Clock, CheckCircle2, MessageCircle, ChevronRight, Dumbbell } from 'lucide-react-native';
+import { Clock, CheckCircle2, Dumbbell } from 'lucide-react-native';
 import { MOCK_MATCHES } from '../data/mockData';
 import { Match } from '../types';
 import { COLORS, BORDER_RADIUS, SPACING } from '../constants/theme';
@@ -27,12 +27,12 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({ onSelectMatch }) =
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Active Scheduled Sessions Banner */}
         {activeSessions.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>🔒 LOCKED-IN WORKOUT SESSIONS</Text>
             {activeSessions.map((m) => {
               const session = m.activeSession!;
+              const photoSrc = typeof m.partner.photos[0] === 'string' ? { uri: m.partner.photos[0] } : m.partner.photos[0];
               return (
                 <TouchableOpacity
                   key={session.id}
@@ -41,7 +41,7 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({ onSelectMatch }) =
                 >
                   <View style={styles.sessionHeader}>
                     <View style={styles.sessionPartnerRow}>
-                      <Image source={{ uri: m.partner.photos[0] }} style={styles.sessionAvatar} />
+                      <Image source={photoSrc} style={styles.sessionAvatar} />
                       <View>
                         <Text style={styles.sessionWithText}>Training with {m.partner.name}</Text>
                         <Text style={styles.sessionGymText}>📍 {session.gymName}</Text>
@@ -58,7 +58,6 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({ onSelectMatch }) =
                     <Text style={styles.sessionFocusText}>Focus: {session.splitFocus}</Text>
                   </View>
 
-                  {/* In-Gym Check-in status */}
                   <View style={styles.checkinStatusRow}>
                     <View style={styles.checkinPill}>
                       <CheckCircle2 size={13} color={session.userCheckedIn ? '#10B981' : COLORS.textMuted} />
@@ -79,32 +78,34 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({ onSelectMatch }) =
           </View>
         )}
 
-        {/* All Conversations */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>ALL CHATS</Text>
-          {MOCK_MATCHES.map((match) => (
-            <TouchableOpacity
-              key={match.id}
-              style={styles.chatRow}
-              onPress={() => onSelectMatch(match)}
-            >
-              <Image source={{ uri: match.partner.photos[0] }} style={styles.chatAvatar} />
-              <View style={styles.chatInfo}>
-                <View style={styles.chatNameRow}>
-                  <Text style={styles.chatName}>{match.partner.name}</Text>
-                  <Text style={styles.chatTime}>{match.lastMessageTime}</Text>
+          {MOCK_MATCHES.map((match) => {
+            const photoSrc = typeof match.partner.photos[0] === 'string' ? { uri: match.partner.photos[0] } : match.partner.photos[0];
+            return (
+              <TouchableOpacity
+                key={match.id}
+                style={styles.chatRow}
+                onPress={() => onSelectMatch(match)}
+              >
+                <Image source={photoSrc} style={styles.chatAvatar} />
+                <View style={styles.chatInfo}>
+                  <View style={styles.chatNameRow}>
+                    <Text style={styles.chatName}>{match.partner.name}</Text>
+                    <Text style={styles.chatTime}>{match.lastMessageTime}</Text>
+                  </View>
+                  <Text style={styles.lastMessage} numberOfLines={1}>
+                    {match.lastMessage}
+                  </Text>
                 </View>
-                <Text style={styles.lastMessage} numberOfLines={1}>
-                  {match.lastMessage}
-                </Text>
-              </View>
-              {match.unreadCount > 0 && (
-                <View style={styles.unreadBadge}>
-                  <Text style={styles.unreadText}>{match.unreadCount}</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          ))}
+                {match.unreadCount > 0 && (
+                  <View style={styles.unreadBadge}>
+                    <Text style={styles.unreadText}>{match.unreadCount}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </ScrollView>
     </SafeAreaView>
