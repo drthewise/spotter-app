@@ -200,29 +200,29 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
           </View>
         </View>
       ) : (
-        /* Tappable Proposal Card when No Locked-In Session */
-        <TouchableOpacity
-          style={[styles.workoutBanner, styles.noSessionBanner]}
-          onPress={() => {
-            try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
-            setRequestSpotModalVisible(true);
-          }}
-          activeOpacity={0.75}
-        >
+        /* Banner when No Locked-In Session (Only pill is selectable) */
+        <View style={[styles.workoutBanner, styles.noSessionBanner]}>
           <View style={styles.bannerLeft}>
             <View style={styles.proposeIconCircle}>
               <Calendar size={15} color={COLORS.accentPurple} />
             </View>
             <View style={{ marginLeft: 8, flex: 1 }}>
               <Text style={styles.noSessionTitle}>No Locked-In Session Yet</Text>
-              <Text style={styles.bannerSub}>Tap to propose a workout time & split focus</Text>
+              <Text style={styles.bannerSub}>Coordinate in chat or tap to lock in a time</Text>
             </View>
           </View>
-          <View style={styles.proposeActionPill}>
+          <TouchableOpacity
+            style={styles.proposeActionPill}
+            onPress={() => {
+              try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
+              setRequestSpotModalVisible(true);
+            }}
+            activeOpacity={0.7}
+          >
             <Zap size={12} color="#FFFFFF" style={{ marginRight: 4 }} />
             <Text style={styles.proposeActionText}>Propose Time</Text>
-          </View>
-        </TouchableOpacity>
+          </TouchableOpacity>
+        </View>
       )}
 
       {/* Messages List */}
