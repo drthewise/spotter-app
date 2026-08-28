@@ -103,6 +103,14 @@ export interface UserProfile {
   reliabilityScore: number;
   completedWorkoutsCount: number;
   
+  // Trainer & Coach Credentials
+  isCoach?: boolean;
+  coachTitle?: string;
+  certifications?: string[];
+  coachingSpecialties?: string[];
+  acceptingClients?: boolean;
+  hourlyRate?: string;
+  
   privacy: PrivacySettings;
 }
 

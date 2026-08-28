@@ -396,6 +396,26 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
 };
 
 const styles = StyleSheet.create({
+  coachBadgeSmall: {
+    backgroundColor: '#F59E0B',
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 3,
+    marginLeft: 6,
+  },
+  coachBadgeSmallText: {
+    color: '#000000',
+    fontSize: 9,
+    fontWeight: '900',
+  },
+  coachFormBox: {
+    backgroundColor: 'rgba(245, 158, 11, 0.06)',
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.2)',
+    marginTop: 8,
+  },
   subLabel: {
     fontSize: 10,
     fontWeight: '800',

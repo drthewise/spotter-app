@@ -294,6 +294,54 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
               </View>
             )}
 
+                        {/* Certified Coach & Trainer Credentials */}
+            {profile.isCoach && (
+              <View style={styles.section}>
+                <View style={styles.coachDossierCard}>
+                  <View style={styles.coachDossierHeader}>
+                    <View style={styles.coachBadgeBig}>
+                      <Text style={styles.coachBadgeBigText}>🏅 VERIFIED COACH</Text>
+                    </View>
+                    {profile.acceptingClients && (
+                      <View style={styles.acceptingBadge}>
+                        <Text style={styles.acceptingBadgeText}>✓ Taking Clients</Text>
+                      </View>
+                    )}
+                  </View>
+
+                  <Text style={styles.coachDossierTitle}>{profile.coachTitle}</Text>
+                  {profile.hourlyRate && (
+                    <Text style={styles.coachRateText}>💰 {profile.hourlyRate}</Text>
+                  )}
+
+                  {/* Certifications Row */}
+                  {profile.certifications && (
+                    <View style={styles.certRow}>
+                      {profile.certifications.map((cert) => (
+                        <View key={cert} style={styles.certPill}>
+                          <Text style={styles.certPillText}>📜 {cert}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+
+                  {/* Coaching Specialties */}
+                  {profile.coachingSpecialties && (
+                    <View style={{ marginTop: 8 }}>
+                      <Text style={styles.coachSpecialtyLabel}>SPECIALTIES & FORM CHECKS</Text>
+                      <View style={styles.specialtyWrap}>
+                        {profile.coachingSpecialties.map((s) => (
+                          <View key={s} style={styles.specialtyPill}>
+                            <Text style={styles.specialtyPillText}>🎯 {s}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+                  )}
+                </View>
+              </View>
+            )}
+
             {/* About / Bio */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>ABOUT MY TRAINING</Text>
@@ -482,6 +530,98 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
 };
 
 const styles = StyleSheet.create({
+  coachDossierCard: {
+    backgroundColor: 'rgba(245, 158, 11, 0.08)',
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.md,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.3)',
+  },
+  coachDossierHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  coachBadgeBig: {
+    backgroundColor: '#F59E0B',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+  },
+  coachBadgeBigText: {
+    color: '#000000',
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  acceptingBadge: {
+    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: BORDER_RADIUS.full,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.4)',
+  },
+  acceptingBadgeText: {
+    color: '#34D399',
+    fontSize: 10,
+    fontWeight: '800',
+  },
+  coachDossierTitle: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '800',
+    marginBottom: 2,
+  },
+  coachRateText: {
+    color: '#FBBF24',
+    fontSize: 12,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  certRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 4,
+  },
+  certPill: {
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: BORDER_RADIUS.sm,
+  },
+  certPillText: {
+    color: '#E2E8F0',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  coachSpecialtyLabel: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: COLORS.textMuted,
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  specialtyWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  specialtyPill: {
+    backgroundColor: 'rgba(245, 158, 11, 0.12)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: BORDER_RADIUS.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.2)',
+  },
+  specialtyPillText: {
+    color: '#FDE68A',
+    fontSize: 11,
+    fontWeight: '600',
+  },
   cadenceBox: {
     backgroundColor: 'rgba(16, 185, 129, 0.12)',
     padding: SPACING.md,

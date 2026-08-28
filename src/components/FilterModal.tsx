@@ -21,6 +21,7 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export interface FilterSettings {
   sameGymOnly: boolean;
+  coachesOnly?: boolean;
   showMen: boolean;
   showWomen: boolean;
   maxDistance: number;
@@ -42,6 +43,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
   onApply,
 }) => {
   const [sameGymOnly, setSameGymOnly] = useState(currentFilters?.sameGymOnly ?? false);
+  const [coachesOnly, setCoachesOnly] = useState(currentFilters?.coachesOnly ?? false);
   const [showMen, setShowMen] = useState(currentFilters?.showMen ?? true);
   const [showWomen, setShowWomen] = useState(currentFilters?.showWomen ?? true);
   const [maxDistance, setMaxDistance] = useState(currentFilters?.maxDistance ?? 25);
@@ -146,6 +148,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
     try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch (e) {}
     onApply({
       sameGymOnly,
+      coachesOnly,
       showMen,
       showWomen,
       maxDistance,
@@ -186,6 +189,25 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                 value={sameGymOnly}
                 onValueChange={setSameGymOnly}
                 trackColor={{ false: '#334155', true: COLORS.primary }}
+                thumbColor="#FFFFFF"
+              />
+            </View>
+
+                        {/* Certified Coaches Only Toggle */}
+            <View style={[styles.toggleCard, coachesOnly && styles.toggleCardCoachActive]}>
+              <View style={styles.toggleTextCol}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Text style={styles.toggleTitle}>Certified Trainers & Coaches Only</Text>
+                  <View style={styles.coachBadgeSmall}>
+                    <Text style={styles.coachBadgeSmallText}>PRO</Text>
+                  </View>
+                </View>
+                <Text style={styles.toggleSub}>Find verified CSCS, NASM, & USAW coaches for form checks</Text>
+              </View>
+              <Switch
+                value={coachesOnly}
+                onValueChange={setCoachesOnly}
+                trackColor={{ false: '#334155', true: '#F59E0B' }}
                 thumbColor="#FFFFFF"
               />
             </View>
@@ -315,6 +337,22 @@ export const FilterModal: React.FC<FilterModalProps> = ({
 };
 
 const styles = StyleSheet.create({
+  toggleCardCoachActive: {
+    backgroundColor: 'rgba(245, 158, 11, 0.08)',
+    borderColor: 'rgba(245, 158, 11, 0.3)',
+  },
+  coachBadgeSmall: {
+    backgroundColor: '#F59E0B',
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 3,
+    marginLeft: 6,
+  },
+  coachBadgeSmallText: {
+    color: '#000000',
+    fontSize: 9,
+    fontWeight: '900',
+  },
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.75)',

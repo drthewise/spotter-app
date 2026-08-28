@@ -17,6 +17,7 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({ onNavigateToCh
 
   const [filters, setFilters] = useState<FilterSettings>({
     sameGymOnly: false,
+    coachesOnly: false,
     showMen: true,
     showWomen: true,
     maxDistance: 50,
@@ -48,6 +49,9 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({ onNavigateToCh
 
     // Same gym filter
     if (filters.sameGymOnly && profile.primaryGym.brand !== CURRENT_USER.primaryGym.brand) return false;
+
+    // Coaches only filter
+    if (filters.coachesOnly && !profile.isCoach) return false;
 
     // Distance filter
     if (profile.distanceMiles > filters.maxDistance) return false;

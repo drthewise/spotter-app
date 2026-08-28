@@ -86,12 +86,24 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
         pointerEvents="box-none"
       >
         <View style={styles.infoContainer} pointerEvents="box-none">
-          {/* Top Row: Name, Age + Expand Info Button */}
+          {/* Top Row: Name, Age, Coach Badge + Expand Info Button */}
           <View style={styles.nameRow} pointerEvents="box-none">
             <View style={styles.nameCol} pointerEvents="none">
-              <Text style={styles.name}>
-                {profile.name}, <Text style={styles.age}>{profile.age}</Text>
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={styles.name}>
+                  {profile.name}, <Text style={styles.age}>{profile.age}</Text>
+                </Text>
+                {profile.isCoach && (
+                  <View style={styles.coachCardBadge}>
+                    <Text style={styles.coachCardBadgeText}>🏅 COACH</Text>
+                  </View>
+                )}
+              </View>
+              {profile.isCoach && profile.coachTitle && (
+                <Text style={styles.coachSubtitle} numberOfLines={1}>
+                  {profile.coachTitle}
+                </Text>
+              )}
             </View>
 
             {/* Expand Details Button */}
@@ -158,6 +170,25 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
 };
 
 const styles = StyleSheet.create({
+  coachCardBadge: {
+    backgroundColor: '#F59E0B',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginLeft: 8,
+  },
+  coachCardBadgeText: {
+    color: '#000000',
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  coachSubtitle: {
+    color: '#FDE68A',
+    fontSize: 11,
+    fontWeight: '700',
+    marginTop: 1,
+  },
   cadencePill: {
     backgroundColor: 'rgba(16, 185, 129, 0.2)',
     paddingHorizontal: 8,
