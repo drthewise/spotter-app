@@ -5,9 +5,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 )
 
 func main() {
+	loadEnvFile()
 	initDB()
 
 	mux := http.NewServeMux()
@@ -43,4 +45,27 @@ func main() {
 	if err := http.ListenAndServe(addr, mux); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}
+}
+
+func loadEnvFile() {
+	data, err := os.ReadFile(".env")
+	if err != nil {
+		return // No .env file present, fallback to system env
+	}
+
+	lines := strings.Split(string(data), "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		parts := strings.SplitN(line, "=", 2)
+		if len(parts) == 2 {
+			k := strings.TrimSpace(parts[0])
+			v := strings.TrimSpace(parts[1])
+			v = strings.Trim(v, "\"'\r")
+			os.Setenv(k, v)
+		}
+	}
+	log.Println("Loaded environment variables from .env file")
 }
