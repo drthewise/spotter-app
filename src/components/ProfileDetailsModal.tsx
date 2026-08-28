@@ -295,73 +295,91 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
               </View>
             )}
 
-                        {/* Certified Coach & Trainer Credentials */}
+            {/* Certified Coach & Trainer Credentials */}
             {profile.isCoach && (
               <View style={styles.section}>
-                <View style={styles.coachDossierCard}>
-                  <View style={styles.coachDossierHeader}>
-                    <View style={styles.coachBadgeBig}>
-                      <Text style={styles.coachBadgeBigText}>🏅 VERIFIED COACH</Text>
+                {profile.coachModeEnabled === false ? (
+                  /* Coach Mode Paused / Personal Workout Mode */
+                  <View style={styles.coachPausedCard}>
+                    <View style={styles.coachDossierHeader}>
+                      <View style={[styles.coachBadgeBig, { backgroundColor: '#475569' }]}>
+                        <Text style={[styles.coachBadgeBigText, { color: '#FFFFFF' }]}>🏅 CREDENTIALED COACH</Text>
+                      </View>
+                      <View style={styles.pausedBadge}>
+                        <Text style={styles.pausedBadgeText}>⚪ Personal Workout Mode</Text>
+                      </View>
                     </View>
-                    {profile.acceptingClients && (
-                      <View style={styles.acceptingBadge}>
-                        <Text style={styles.acceptingBadgeText}>✓ Taking Clients</Text>
-                      </View>
-                    )}
+                    <Text style={styles.coachPausedText}>
+                      {profile.name} is a certified {profile.accreditationBody || 'CSCS'} coach, but is currently in personal training mode (not actively taking clients).
+                    </Text>
                   </View>
-
-                  <Text style={styles.coachDossierTitle}>{profile.coachTitle}</Text>
-                  {profile.hourlyRate && (
-                    <Text style={styles.coachRateText}>💰 {profile.hourlyRate}</Text>
-                  )}
-
-                  {/* Audited Credential Verification Stamp */}
-                  {profile.coachVerificationStatus === 'verified' && (
-                    <View style={styles.auditStampBox}>
-                      <View style={styles.auditStampRow}>
-                        <ShieldCheck size={14} color="#10B981" style={{ marginRight: 6 }} />
-                        <Text style={styles.auditStampText}>
-                          Verified {profile.accreditationBody} License #{profile.credentialIdNumber || 'AUDITED'}
-                        </Text>
+                ) : (
+                  /* Coach Mode Active */
+                  <View style={styles.coachDossierCard}>
+                    <View style={styles.coachDossierHeader}>
+                      <View style={styles.coachBadgeBig}>
+                        <Text style={styles.coachBadgeBigText}>🏅 VERIFIED COACH</Text>
                       </View>
-                      <View style={styles.auditStampRow}>
-                        <CheckCircle size={13} color="#10B981" style={{ marginRight: 6 }} />
-                        <Text style={styles.auditStampSubText}>Current Red Cross CPR / AED on file</Text>
-                      </View>
-                      {profile.liabilityInsuranceVerified && (
-                        <View style={styles.auditStampRow}>
-                          <CheckCircle size={13} color="#10B981" style={{ marginRight: 6 }} />
-                          <Text style={styles.auditStampSubText}>Professional Trainer Liability Insurance verified</Text>
+                      {profile.acceptingClients && (
+                        <View style={styles.acceptingBadge}>
+                          <Text style={styles.acceptingBadgeText}>✓ Taking Clients</Text>
                         </View>
                       )}
                     </View>
-                  )}
 
-                  {/* Certifications Row */}
-                  {profile.certifications && (
-                    <View style={styles.certRow}>
-                      {profile.certifications.map((cert) => (
-                        <View key={cert} style={styles.certPill}>
-                          <Text style={styles.certPillText}>📜 {cert}</Text>
+                    <Text style={styles.coachDossierTitle}>{profile.coachTitle}</Text>
+                    {profile.hourlyRate && (
+                      <Text style={styles.coachRateText}>💰 {profile.hourlyRate}</Text>
+                    )}
+
+                    {/* Audited Credential Verification Stamp */}
+                    {profile.coachVerificationStatus === 'verified' && (
+                      <View style={styles.auditStampBox}>
+                        <View style={styles.auditStampRow}>
+                          <ShieldCheck size={14} color="#10B981" style={{ marginRight: 6 }} />
+                          <Text style={styles.auditStampText}>
+                            Verified {profile.accreditationBody} License #{profile.credentialIdNumber || 'AUDITED'}
+                          </Text>
                         </View>
-                      ))}
-                    </View>
-                  )}
+                        <View style={styles.auditStampRow}>
+                          <CheckCircle size={13} color="#10B981" style={{ marginRight: 6 }} />
+                          <Text style={styles.auditStampSubText}>Current Red Cross CPR / AED on file</Text>
+                        </View>
+                        {profile.liabilityInsuranceVerified && (
+                          <View style={styles.auditStampRow}>
+                            <CheckCircle size={13} color="#10B981" style={{ marginRight: 6 }} />
+                            <Text style={styles.auditStampSubText}>Professional Trainer Liability Insurance verified</Text>
+                          </View>
+                        )}
+                      </View>
+                    )}
 
-                  {/* Coaching Specialties */}
-                  {profile.coachingSpecialties && (
-                    <View style={{ marginTop: 8 }}>
-                      <Text style={styles.coachSpecialtyLabel}>SPECIALTIES & FORM CHECKS</Text>
-                      <View style={styles.specialtyWrap}>
-                        {profile.coachingSpecialties.map((s) => (
-                          <View key={s} style={styles.specialtyPill}>
-                            <Text style={styles.specialtyPillText}>🎯 {s}</Text>
+                    {/* Certifications Row */}
+                    {profile.certifications && (
+                      <View style={styles.certRow}>
+                        {profile.certifications.map((cert) => (
+                          <View key={cert} style={styles.certPill}>
+                            <Text style={styles.certPillText}>📜 {cert}</Text>
                           </View>
                         ))}
                       </View>
-                    </View>
-                  )}
-                </View>
+                    )}
+
+                    {/* Coaching Specialties */}
+                    {profile.coachingSpecialties && (
+                      <View style={{ marginTop: 8 }}>
+                        <Text style={styles.coachSpecialtyLabel}>SPECIALTIES & FORM CHECKS</Text>
+                        <View style={styles.specialtyWrap}>
+                          {profile.coachingSpecialties.map((s) => (
+                            <View key={s} style={styles.specialtyPill}>
+                              <Text style={styles.specialtyPillText}>🎯 {s}</Text>
+                            </View>
+                          ))}
+                        </View>
+                      </View>
+                    )}
+                  </View>
+                )}
               </View>
             )}
 
@@ -553,6 +571,30 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
 };
 
 const styles = StyleSheet.create({
+  coachPausedCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  pausedBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: BORDER_RADIUS.full,
+  },
+  pausedBadgeText: {
+    color: COLORS.textSecondary,
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  coachPausedText: {
+    color: COLORS.textSecondary,
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 6,
+  },
   auditStampBox: {
     backgroundColor: 'rgba(16, 185, 129, 0.08)',
     borderRadius: BORDER_RADIUS.md,

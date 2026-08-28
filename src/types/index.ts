@@ -105,6 +105,7 @@ export interface UserProfile {
   
   // Trainer & Coach Credentials & Documentation Verification
   isCoach?: boolean;
+  coachModeEnabled?: boolean; // Toggle Coach Mode (Active vs Personal Workouts Only)
   coachTitle?: string;
   certifications?: string[];
   coachingSpecialties?: string[];

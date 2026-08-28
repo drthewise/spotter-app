@@ -53,7 +53,7 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({ onNavigateToCh
     if (filters.sameGymOnly && profile.primaryGym.brand !== CURRENT_USER.primaryGym.brand) return false;
 
     // Coaches only filter
-    if (filters.coachesOnly && !profile.isCoach) return false;
+    if (filters.coachesOnly && (!profile.isCoach || profile.coachModeEnabled === false)) return false;
 
     // Distance filter
     if (profile.distanceMiles > filters.maxDistance) return false;

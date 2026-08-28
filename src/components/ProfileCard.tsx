@@ -93,13 +93,13 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
                 <Text style={styles.name}>
                   {profile.name}, <Text style={styles.age}>{profile.age}</Text>
                 </Text>
-                {profile.isCoach && profile.coachVerificationStatus === 'verified' && (
+                {profile.isCoach && profile.coachVerificationStatus === 'verified' && profile.coachModeEnabled !== false && (
                   <View style={styles.coachCardBadge}>
                     <Text style={styles.coachCardBadgeText}>🏅 COACH</Text>
                   </View>
                 )}
               </View>
-              {profile.isCoach && profile.coachTitle && (
+              {profile.isCoach && profile.coachModeEnabled !== false && profile.coachTitle && (
                 <Text style={styles.coachSubtitle} numberOfLines={1}>
                   {profile.coachTitle}
                 </Text>

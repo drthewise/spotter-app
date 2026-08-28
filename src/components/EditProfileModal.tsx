@@ -396,6 +396,27 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
 };
 
 const styles = StyleSheet.create({
+  coachModeToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    marginBottom: SPACING.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  coachModeTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  coachModeSub: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+  },
   verificationStatusBanner: {
     backgroundColor: 'rgba(255, 255, 255, 0.04)',
     padding: SPACING.md,
