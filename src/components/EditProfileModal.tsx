@@ -177,17 +177,40 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const [coachTitle, setCoachTitle] = useState<string>(user.coachTitle ?? '');
   const [hourlyRate, setHourlyRate] = useState<string>(user.hourlyRate ?? '');
 
-  // Custom Benchmarks
-  const initialBenchmarks: BenchmarkItem[] = user.strengthBenchmarks?.benchmarks && user.strengthBenchmarks.benchmarks.length > 0
-    ? user.strengthBenchmarks.benchmarks
-    : [
-        { id: 'b1', name: 'Barbell Hip Thrust / Bench', value: '225 lbs' },
-        { id: 'b2', name: 'Squat / Leg Press', value: '315 lbs (3x8)' },
-        { id: 'b3', name: 'Deadlift / RDL', value: '405 lbs (1RM)' },
-        { id: 'b4', name: 'Dumbbell Working Weight', value: '90 lb DBs (3x8)' },
-      ];
+  // Active Category & Category Cache
+  const initialCategory = user.strengthBenchmarks?.category || '🏋️ Barbell Compounds';
+  const [activeCategory, setActiveCategory] = useState<string>(initialCategory);
 
-  const [benchmarks, setBenchmarks] = useState<BenchmarkItem[]>(initialBenchmarks);
+  const [benchmarksByCategory, setBenchmarksByCategory] = useState<Record<string, BenchmarkItem[]>>(() => {
+    const initialMap: Record<string, BenchmarkItem[]> = {};
+    BENCHMARK_PRESETS.forEach((p) => {
+      initialMap[p.category] = p.items.map((it, idx) => ({
+        id: 'b_' + idx,
+        name: it.name,
+        value: it.value,
+      }));
+    });
+
+    if (user.strengthBenchmarks?.benchmarks && user.strengthBenchmarks.benchmarks.length > 0) {
+      initialMap[initialCategory] = user.strengthBenchmarks.benchmarks.map((b, i) => ({
+        id: b.id || 'b_' + i,
+        name: b.name,
+        value: b.value,
+      }));
+    }
+    return initialMap;
+  });
+
+  const [benchmarks, setBenchmarks] = useState<BenchmarkItem[]>(() => {
+    if (user.strengthBenchmarks?.benchmarks && user.strengthBenchmarks.benchmarks.length > 0) {
+      return [...user.strengthBenchmarks.benchmarks];
+    }
+    return BENCHMARK_PRESETS[0].items.map((it, idx) => ({
+      id: 'b_' + idx,
+      name: it.name,
+      value: it.value,
+    }));
+  });
   
   // Weight & Number Dialer State
   const [dialerVisible, setDialerVisible] = useState(false);
@@ -229,12 +252,27 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
   const applyPreset = (preset: typeof BENCHMARK_PRESETS[0]) => {
     try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch (e) {}
-    const newItems = preset.items.map((item, idx) => ({
-      id: 'b_' + Date.now() + '_' + idx,
-      name: item.name,
-      value: item.value,
-    }));
-    setBenchmarks(newItems);
+    
+    // Save current active category state
+    const updatedMap = {
+      ...benchmarksByCategory,
+      [activeCategory]: benchmarks,
+    };
+    setBenchmarksByCategory(updatedMap);
+
+    // Switch to new category and load its remembered custom benchmarks
+    setActiveCategory(preset.category);
+    const existing = updatedMap[preset.category];
+    if (existing && existing.length > 0) {
+      setBenchmarks(existing);
+    } else {
+      const newItems = preset.items.map((item, idx) => ({
+        id: 'b_' + idx,
+        name: item.name,
+        value: item.value,
+      }));
+      setBenchmarks(newItems);
+    }
   };
 
   const openWeightDialer = (idx: number, item: BenchmarkItem) => {
@@ -277,6 +315,12 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
     const updated = [...benchmarks];
     updated[editingBenchmarkIdx].value = formattedVal;
     setBenchmarks(updated);
+
+    setBenchmarksByCategory((prev) => ({
+      ...prev,
+      [activeCategory]: updated,
+    }));
+
     setDialerVisible(false);
   };
 
@@ -284,6 +328,11 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
     const updated = [...benchmarks];
     updated[idx].name = name;
     setBenchmarks(updated);
+
+    setBenchmarksByCategory((prev) => ({
+      ...prev,
+      [activeCategory]: updated,
+    }));
   };
 
   const toggleModality = (m: Modality) => {
@@ -315,6 +364,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
       spottingStyle,
       gymEnergy,
       strengthBenchmarks: {
+        category: activeCategory as any,
         benchmarks,
       },
     });
@@ -461,17 +511,23 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
             {/* Working Weights & Benchmarks with Scrollable Weight Dialer */}
             <Text style={styles.sectionHeader}>TRAINING BENCHMARKS & WORKING STATS</Text>
             
-            {/* Preset Picker */}
+            {/* Preset Category Switcher */}
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.presetScroll}>
-              {BENCHMARK_PRESETS.map((preset) => (
-                <TouchableOpacity
-                  key={preset.category}
-                  style={styles.presetBtn}
-                  onPress={() => applyPreset(preset)}
-                >
-                  <Text style={styles.presetBtnText}>{preset.category}</Text>
-                </TouchableOpacity>
-              ))}
+              {BENCHMARK_PRESETS.map((preset) => {
+                const isActive = activeCategory === preset.category;
+                return (
+                  <TouchableOpacity
+                    key={preset.category}
+                    style={[styles.presetBtn, isActive && styles.presetBtnActive]}
+                    onPress={() => applyPreset(preset)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[styles.presetBtnText, isActive && styles.presetBtnTextActive]}>
+                      {preset.category}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </ScrollView>
 
             <View style={styles.benchmarksContainer}>
@@ -1308,11 +1364,20 @@ const styles = StyleSheet.create({
   },
   presetBtn: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
     borderRadius: BORDER_RADIUS.md,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  presetBtnActive: {
+    backgroundColor: 'rgba(16, 185, 129, 0.18)',
+    borderColor: COLORS.primary,
+    borderWidth: 1.5,
+  },
+  presetBtnTextActive: {
+    color: '#34D399',
+    fontWeight: '800',
   },
   presetBtnText: {
     color: COLORS.textSecondary,
