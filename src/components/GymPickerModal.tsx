@@ -7,8 +7,11 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
+  SafeAreaView,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
-import { X, Search, MapPin, Check, Building2, Plus } from 'lucide-react-native';
+import { X, Search, MapPin, Check, Building2, Plus, ArrowLeft } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { COLORS, BORDER_RADIUS, SPACING } from '../constants/theme';
 
@@ -112,7 +115,8 @@ export const GymPickerModal: React.FC<GymPickerModalProps> = ({
   const [showCustomForm, setShowCustomForm] = useState(false);
 
   const filteredGyms = POPULAR_GYMS.filter((g) => {
-    const q = searchQuery.toLowerCase();
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return true;
     return (
       g.brand.toLowerCase().includes(q) ||
       g.branchName.toLowerCase().includes(q) ||
@@ -130,6 +134,7 @@ export const GymPickerModal: React.FC<GymPickerModalProps> = ({
       branchName: gym.branchName,
       neighborhood: gym.neighborhood,
     });
+    setSearchQuery('');
     onClose();
   };
 
@@ -152,44 +157,62 @@ export const GymPickerModal: React.FC<GymPickerModalProps> = ({
     setCustomGymName('');
     setCustomCity('');
     setShowCustomForm(false);
+    setSearchQuery('');
     onClose();
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent={true}>
-      <View style={styles.overlay}>
-        <View style={styles.sheet}>
-          {/* Header */}
-          <View style={styles.header}>
-            <View>
-              <Text style={styles.title}>Select Your Home Gym</Text>
-              <Text style={styles.subtitle}>Your primary training base for spot matching</Text>
-            </View>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <X size={20} color={COLORS.textSecondary} />
-            </TouchableOpacity>
+    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
+      <SafeAreaView style={styles.safeArea}>
+        {/* Fixed Top Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={onClose} style={styles.closeBtn} activeOpacity={0.7}>
+            <ArrowLeft size={20} color={COLORS.textPrimary} />
+          </TouchableOpacity>
+          <View style={styles.headerCenter}>
+            <Text style={styles.title}>Select Home Gym</Text>
+            <Text style={styles.subtitle}>Primary base for spot matching & geofence</Text>
           </View>
+          <TouchableOpacity onPress={onClose} style={styles.doneBtn} activeOpacity={0.7}>
+            <Text style={styles.doneText}>Done</Text>
+          </TouchableOpacity>
+        </View>
 
-          {/* Search Input */}
+        {/* Fixed Top Search Bar (NEVER gets pushed under keyboard) */}
+        <View style={styles.searchSection}>
           <View style={styles.searchContainer}>
-            <Search size={18} color={COLORS.textMuted} style={{ marginRight: 8 }} />
+            <Search size={18} color={COLORS.primary} style={{ marginRight: 8 }} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Search gyms by name, chain, or city..."
+              placeholder="Search by gym name, brand, or city..."
               placeholderTextColor={COLORS.textMuted}
               value={searchQuery}
               onChangeText={setSearchQuery}
+              autoCorrect={false}
+              clearButtonMode="while-editing"
             />
-            {searchQuery.length > 0 && (
+            {searchQuery.length > 0 && Platform.OS !== 'ios' && (
               <TouchableOpacity onPress={() => setSearchQuery('')}>
                 <X size={16} color={COLORS.textMuted} />
               </TouchableOpacity>
             )}
           </View>
+        </View>
 
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.listContent}>
-            {/* Nearby Gyms List */}
-            <Text style={styles.sectionHeader}>NEARBY & POPULAR GYMS</Text>
+        {/* Scrollable Results Area with Keyboard Avoidance */}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.keyboardContainer}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 10 : 0}
+        >
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.listContent}
+            keyboardShouldPersistTaps="handled"
+          >
+            <Text style={styles.sectionHeader}>
+              {searchQuery.trim() ? `SEARCH RESULTS (${filteredGyms.length})` : 'NEARBY & POPULAR GYMS'}
+            </Text>
 
             {filteredGyms.map((gym) => {
               const isSelected = currentGym.branchName === gym.branchName;
@@ -198,7 +221,7 @@ export const GymPickerModal: React.FC<GymPickerModalProps> = ({
                   key={gym.id}
                   style={[styles.gymCard, isSelected && styles.gymCardSelected]}
                   onPress={() => handleSelect(gym)}
-                  activeOpacity={0.8}
+                  activeOpacity={0.7}
                 >
                   <View style={[styles.gymIconCircle, isSelected && styles.gymIconCircleSelected]}>
                     <Building2 size={18} color={isSelected ? '#FFFFFF' : COLORS.primary} />
@@ -216,7 +239,7 @@ export const GymPickerModal: React.FC<GymPickerModalProps> = ({
                   </View>
 
                   <View style={[styles.checkCircle, isSelected && styles.checkCircleSelected]}>
-                    {isSelected && <Check size={14} color="#FFFFFF" strokeWidth={3} />}
+                    {isSelected && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
                   </View>
                 </TouchableOpacity>
               );
@@ -224,8 +247,8 @@ export const GymPickerModal: React.FC<GymPickerModalProps> = ({
 
             {filteredGyms.length === 0 && (
               <View style={styles.emptyResults}>
-                <Text style={styles.emptyTitle}>No matching gyms found</Text>
-                <Text style={styles.emptySub}>Don't see your gym? Add it below!</Text>
+                <Text style={styles.emptyTitle}>No gyms matching "{searchQuery}"</Text>
+                <Text style={styles.emptySub}>Don't worry, you can add your gym below!</Text>
               </View>
             )}
 
@@ -245,14 +268,14 @@ export const GymPickerModal: React.FC<GymPickerModalProps> = ({
                   <Text style={styles.customFormTitle}>Add Custom Gym</Text>
                   <TextInput
                     style={styles.customInput}
-                    placeholder="Gym Name (e.g. Iron Addicts Gym)"
+                    placeholder="Gym Name (e.g. Iron Addicts Powerlifting)"
                     placeholderTextColor={COLORS.textMuted}
                     value={customGymName}
                     onChangeText={setCustomGymName}
                   />
                   <TextInput
                     style={styles.customInput}
-                    placeholder="City / Area (e.g. Garfield, NJ)"
+                    placeholder="City / Location (e.g. Garfield, NJ)"
                     placeholderTextColor={COLORS.textMuted}
                     value={customCity}
                     onChangeText={setCustomCity}
@@ -269,76 +292,87 @@ export const GymPickerModal: React.FC<GymPickerModalProps> = ({
                       onPress={handleAddCustom}
                       disabled={!customGymName.trim()}
                     >
-                      <Text style={styles.saveCustomText}>Set as Home Gym</Text>
+                      <Text style={styles.saveCustomText}>Save & Set Gym</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
               )}
             </View>
           </ScrollView>
-        </View>
-      </View>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: {
+  safeArea: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    backgroundColor: '#11141F',
-    borderTopLeftRadius: BORDER_RADIUS.xl + 4,
-    borderTopRightRadius: BORDER_RADIUS.xl + 4,
-    maxHeight: '88%',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: '#0B0D14',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: SPACING.xl,
-    paddingTop: SPACING.lg,
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.sm,
     paddingBottom: SPACING.md,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.06)',
   },
+  closeBtn: {
+    padding: 6,
+  },
+  headerCenter: {
+    alignItems: 'center',
+  },
   title: {
-    fontSize: 20,
+    fontSize: 17,
     fontWeight: '800',
     color: COLORS.textPrimary,
   },
   subtitle: {
-    fontSize: 12,
+    fontSize: 11,
     color: COLORS.textSecondary,
-    marginTop: 2,
+    marginTop: 1,
   },
-  closeBtn: {
+  doneBtn: {
     padding: 6,
+  },
+  doneText: {
+    color: COLORS.primary,
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  searchSection: {
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+    backgroundColor: '#0B0D14',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    marginHorizontal: SPACING.lg,
-    marginTop: SPACING.md,
-    marginBottom: SPACING.sm,
+    backgroundColor: 'rgba(255, 255, 255, 0.07)',
     paddingHorizontal: SPACING.md,
-    paddingVertical: 10,
+    paddingVertical: 11,
     borderRadius: BORDER_RADIUS.lg,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   searchInput: {
     flex: 1,
-    color: COLORS.textPrimary,
-    fontSize: 13,
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  keyboardContainer: {
+    flex: 1,
   },
   listContent: {
     paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.md,
     paddingBottom: 40,
   },
   sectionHeader: {
@@ -346,7 +380,6 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: COLORS.textMuted,
     letterSpacing: 1,
-    marginTop: SPACING.sm,
     marginBottom: SPACING.sm,
   },
   gymCard: {
