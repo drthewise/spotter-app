@@ -57,13 +57,51 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
   const [fullscreenPhotoIdx, setFullscreenPhotoIdx] = useState(0);
 
   const lightboxScrollRef = useRef<ScrollView>(null);
-  const translateY = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+  const backdropOpacity = useRef(new Animated.Value(0)).current;
 
+  // Single unified entrance animation
   useEffect(() => {
     if (visible) {
-      translateY.setValue(0);
+      translateY.setValue(SCREEN_HEIGHT);
+      backdropOpacity.setValue(0);
+
+      Animated.parallel([
+        Animated.timing(translateY, {
+          toValue: 0,
+          duration: 240,
+          useNativeDriver: true,
+        }),
+        Animated.timing(backdropOpacity, {
+          toValue: 1,
+          duration: 240,
+          useNativeDriver: true,
+        }),
+      ]).start();
     }
   }, [visible]);
+
+  // Clean single exit animation without double slide
+  const handleDismiss = () => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } catch (e) {}
+
+    Animated.parallel([
+      Animated.timing(translateY, {
+        toValue: SCREEN_HEIGHT,
+        duration: 180,
+        useNativeDriver: true,
+      }),
+      Animated.timing(backdropOpacity, {
+        toValue: 0,
+        duration: 180,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      onClose();
+    });
+  };
 
   const panResponder = useRef(
     PanResponder.create({
@@ -75,18 +113,8 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
         }
       },
       onPanResponderRelease: (_, gestureState) => {
-        if (gestureState.dy > 120 || gestureState.vy > 0.5) {
-          try {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-          } catch (e) {}
-          Animated.timing(translateY, {
-            toValue: SCREEN_HEIGHT,
-            duration: 180,
-            useNativeDriver: true,
-          }).start(() => {
-            onClose();
-            translateY.setValue(0);
-          });
+        if (gestureState.dy > 100 || gestureState.vy > 0.4) {
+          handleDismiss();
         } else {
           Animated.spring(translateY, {
             toValue: 0,
@@ -121,18 +149,20 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
     lightboxScrollRef.current?.scrollTo({ x: safeIdx * SCREEN_WIDTH, animated: true });
   };
 
+  if (!visible) return null;
+
   return (
-    <Modal visible={visible} animationType="slide" transparent={true}>
-      <View style={styles.overlay}>
+    <Modal visible={visible} animationType="none" transparent={true}>
+      <Animated.View style={[styles.overlay, { opacity: backdropOpacity }]}>
         {/* Backdrop tap to dismiss */}
-        <TouchableWithoutFeedback onPress={onClose}>
+        <TouchableWithoutFeedback onPress={handleDismiss}>
           <View style={styles.backdropTouchArea} />
         </TouchableWithoutFeedback>
 
         <Animated.View style={[styles.sheetContainer, { transform: [{ translateY }] }]}>
           {/* Top Handle / Header Bar with PanResponder for Swipe Down */}
           <View style={styles.headerBar} {...panResponder.panHandlers}>
-            <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
+            <TouchableOpacity style={styles.closeBtn} onPress={handleDismiss}>
               <ChevronDown size={24} color={COLORS.textSecondary} />
             </TouchableOpacity>
 
@@ -146,7 +176,7 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
               >
                 <ShieldAlert size={18} color="#F87171" />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.closeRoundBtn} onPress={onClose}>
+              <TouchableOpacity style={styles.closeRoundBtn} onPress={handleDismiss}>
                 <X size={18} color={COLORS.textPrimary} />
               </TouchableOpacity>
             </View>
@@ -294,7 +324,7 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
                 <TouchableOpacity
                   style={styles.superSpotActionBtn}
                   onPress={() => {
-                    onClose();
+                    handleDismiss();
                     onRequestSpot();
                   }}
                 >
@@ -307,7 +337,7 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
                 <TouchableOpacity
                   style={styles.connectActionBtn}
                   onPress={() => {
-                    onClose();
+                    handleDismiss();
                     onConnect();
                   }}
                 >
@@ -421,11 +451,11 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
             onClose={() => setReportModalVisible(false)}
             onReportSubmitted={() => {
               setReportModalVisible(false);
-              onClose();
+              handleDismiss();
             }}
           />
         </Animated.View>
-      </View>
+      </Animated.View>
     </Modal>
   );
 };
