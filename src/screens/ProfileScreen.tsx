@@ -24,13 +24,15 @@ import {
   PlayCircle,
   Trash2,
   AlertCircle,
-  UserCheck,
+  UserX,
+  Lock,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { CURRENT_USER } from '../data/mockData';
 import { ScheduleMatrix } from '../components/ScheduleMatrix';
 import { GymPickerModal } from '../components/GymPickerModal';
 import { DeleteAccountModal } from '../components/DeleteAccountModal';
+import { BlockContactsModal } from '../components/BlockContactsModal';
 import { COLORS, BORDER_RADIUS, SPACING } from '../constants/theme';
 import { ScheduleDay, TimeSlot } from '../types';
 
@@ -45,6 +47,8 @@ export const ProfileScreen: React.FC = () => {
   const [gymPickerVisible, setGymPickerVisible] = useState(false);
   const [isAccountPaused, setIsAccountPaused] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [blockContactsVisible, setBlockContactsVisible] = useState(false);
+  const [blockedCount, setBlockedCount] = useState(2);
 
   const toggleMen = () => {
     try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
@@ -103,7 +107,7 @@ export const ProfileScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
-        <Text style={styles.title}>Fitness DNA & Account</Text>
+        <Text style={styles.title}>Fitness DNA & Privacy</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -263,6 +267,30 @@ export const ProfileScreen: React.FC = () => {
             <Text style={styles.sectionHeading}>PRIVACY & ANTI-DOXXING CONTROLS</Text>
           </View>
 
+          {/* Block Specific People / Contacts Card */}
+          <TouchableOpacity
+            style={styles.blockContactsCard}
+            onPress={() => setBlockContactsVisible(true)}
+            activeOpacity={0.8}
+          >
+            <View style={styles.blockIconCircle}>
+              <UserX size={20} color="#EF4444" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={styles.blockCardTitle}>Block Specific People</Text>
+                <View style={styles.blockedCountPill}>
+                  <Text style={styles.blockedCountText}>{blockedCount} blocked</Text>
+                </View>
+              </View>
+              <Text style={styles.blockCardSub}>
+                Block by phone number or email so exes, coworkers, or acquaintances never see you.
+              </Text>
+            </View>
+            <ChevronRight size={18} color={COLORS.textSecondary} />
+          </TouchableOpacity>
+
+          {/* Ghost Mode */}
           <View style={styles.settingCard}>
             <View style={styles.settingTextCol}>
               <Text style={styles.settingTitle}>Ghost / Stealth Mode</Text>
@@ -278,6 +306,7 @@ export const ProfileScreen: React.FC = () => {
             />
           </View>
 
+          {/* Distance Fuzzing */}
           <View style={styles.settingCard}>
             <View style={styles.settingTextCol}>
               <Text style={styles.settingTitle}>Distance Jitter & Fuzzing</Text>
@@ -293,6 +322,7 @@ export const ProfileScreen: React.FC = () => {
             />
           </View>
 
+          {/* Public Gym Visibility */}
           <View style={styles.settingCard}>
             <View style={styles.settingTextCol}>
               <Text style={styles.settingTitle}>Public Gym Visibility</Text>
@@ -381,6 +411,13 @@ export const ProfileScreen: React.FC = () => {
         visible={deleteModalVisible}
         onClose={() => setDeleteModalVisible(false)}
         onConfirmDelete={handleConfirmAccountDelete}
+      />
+
+      {/* Block Contacts & People Modal */}
+      <BlockContactsModal
+        visible={blockContactsVisible}
+        onClose={() => setBlockContactsVisible(false)}
+        onUpdateCount={setBlockedCount}
       />
     </SafeAreaView>
   );
@@ -577,6 +614,48 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     fontSize: 12,
     fontWeight: '700',
+  },
+  blockContactsCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.lg,
+    marginBottom: SPACING.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.2)',
+  },
+  blockIconCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  blockCardTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+  },
+  blockedCountPill: {
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: BORDER_RADIUS.full,
+    marginLeft: 8,
+  },
+  blockedCountText: {
+    color: '#EF4444',
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  blockCardSub: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+    lineHeight: 15,
   },
   settingCard: {
     flexDirection: 'row',
