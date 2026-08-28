@@ -1,9 +1,23 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, Switch, ScrollView } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Modal,
+  TouchableOpacity,
+  Switch,
+  ScrollView,
+  Dimensions,
+  Animated,
+  PanResponder,
+  TouchableWithoutFeedback,
+} from 'react-native';
 import { X, Check, Dumbbell, MapPin, Users } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { COLORS, BORDER_RADIUS, SPACING } from '../constants/theme';
 import { CURRENT_USER } from '../data/mockData';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export interface FilterSettings {
   sameGymOnly: boolean;
@@ -34,9 +48,80 @@ export const FilterModal: React.FC<FilterModalProps> = ({
   const [experienceLevel, setExperienceLevel] = useState<string>(currentFilters?.experienceLevel ?? 'All');
   const [modality, setModality] = useState<string>(currentFilters?.modality ?? 'All');
 
+  const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+  const backdropOpacity = useRef(new Animated.Value(0)).current;
+
+  // Single unified entrance animation
+  useEffect(() => {
+    if (visible) {
+      translateY.setValue(SCREEN_HEIGHT);
+      backdropOpacity.setValue(0);
+
+      Animated.parallel([
+        Animated.timing(translateY, {
+          toValue: 0,
+          duration: 240,
+          useNativeDriver: true,
+        }),
+        Animated.timing(backdropOpacity, {
+          toValue: 1,
+          duration: 240,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [visible]);
+
+  const handleDismiss = () => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } catch (e) {}
+
+    Animated.parallel([
+      Animated.timing(translateY, {
+        toValue: SCREEN_HEIGHT,
+        duration: 180,
+        useNativeDriver: true,
+      }),
+      Animated.timing(backdropOpacity, {
+        toValue: 0,
+        duration: 180,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      onClose();
+    });
+  };
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onStartShouldSetPanResponderCapture: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dy > 3,
+      onMoveShouldSetPanResponderCapture: (_, gestureState) => gestureState.dy > 3,
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dy > 0) {
+          translateY.setValue(gestureState.dy);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy > 100 || gestureState.vy > 0.4) {
+          handleDismiss();
+        } else {
+          Animated.spring(translateY, {
+            toValue: 0,
+            bounciness: 4,
+            useNativeDriver: true,
+          }).start();
+        }
+      },
+    })
+  ).current;
+
+  if (!visible) return null;
+
   const toggleMen = () => {
     try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
-    // Ensure at least one is selected
     if (showMen && !showWomen) {
       setShowWomen(true);
     }
@@ -45,7 +130,6 @@ export const FilterModal: React.FC<FilterModalProps> = ({
 
   const toggleWomen = () => {
     try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
-    // Ensure at least one is selected
     if (showWomen && !showMen) {
       setShowMen(true);
     }
@@ -68,18 +152,27 @@ export const FilterModal: React.FC<FilterModalProps> = ({
       experienceLevel,
       modality,
     });
-    onClose();
+    handleDismiss();
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide">
-      <View style={styles.overlay}>
-        <View style={styles.sheet}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Discovery Filters</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <X size={20} color={COLORS.textSecondary} />
-            </TouchableOpacity>
+    <Modal visible={visible} transparent animationType="none">
+      <Animated.View style={[styles.overlay, { opacity: backdropOpacity }]}>
+        {/* Backdrop tap to dismiss */}
+        <TouchableWithoutFeedback onPress={handleDismiss}>
+          <View style={styles.backdropTouchArea} />
+        </TouchableWithoutFeedback>
+
+        <Animated.View style={[styles.sheet, { transform: [{ translateY }] }]}>
+          {/* Top Handle / Header with PanResponder for Swipe Down */}
+          <View style={styles.header} {...panResponder.panHandlers}>
+            <View style={styles.dragPill} />
+            <View style={styles.headerContentRow}>
+              <Text style={styles.title}>Discovery Filters</Text>
+              <TouchableOpacity onPress={handleDismiss} style={styles.closeBtn}>
+                <X size={20} color={COLORS.textSecondary} />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false}>
@@ -98,109 +191,125 @@ export const FilterModal: React.FC<FilterModalProps> = ({
             </View>
 
             {/* Gender Filter Checkboxes */}
-            <Text style={styles.sectionHeader}>SHOW ME</Text>
-            <View style={styles.checkboxRow}>
-              {/* Men Checkbox */}
-              <TouchableOpacity
-                style={[styles.checkboxCard, showMen && styles.checkboxCardActive]}
-                onPress={toggleMen}
-                activeOpacity={0.8}
-              >
-                <View style={[styles.checkboxCircle, showMen && styles.checkboxCircleActive]}>
-                  {showMen && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
-                </View>
-                <Text style={[styles.checkboxLabel, showMen && styles.checkboxLabelActive]}>
-                  Men
-                </Text>
-              </TouchableOpacity>
+            <View style={styles.section}>
+              <View style={styles.sectionHeaderRow}>
+                <Text style={styles.sectionTitle}>SHOW LIFTERS</Text>
+                <TouchableOpacity onPress={selectAllGenders}>
+                  <Text style={styles.selectAllText}>Select All</Text>
+                </TouchableOpacity>
+              </View>
 
-              {/* Women Checkbox */}
-              <TouchableOpacity
-                style={[styles.checkboxCard, showWomen && styles.checkboxCardActive]}
-                onPress={toggleWomen}
-                activeOpacity={0.8}
-              >
-                <View style={[styles.checkboxCircle, showWomen && styles.checkboxCircleActive]}>
-                  {showWomen && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
-                </View>
-                <Text style={[styles.checkboxLabel, showWomen && styles.checkboxLabelActive]}>
-                  Women
-                </Text>
-              </TouchableOpacity>
+              <View style={styles.checkboxRow}>
+                <TouchableOpacity
+                  style={[styles.checkboxCard, showMen && styles.checkboxCardActive]}
+                  onPress={toggleMen}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.checkbox, showMen && styles.checkboxActive]}>
+                    {showMen && <Check size={14} color="#FFFFFF" />}
+                  </View>
+                  <View style={styles.checkboxLabelCol}>
+                    <Text style={[styles.checkboxLabel, showMen && styles.checkboxLabelActive]}>Men</Text>
+                    <Text style={styles.checkboxSub}>Male lifters</Text>
+                  </View>
+                </TouchableOpacity>
 
-              {/* All / Everyone Button */}
-              <TouchableOpacity
-                style={[
-                  styles.checkboxCard,
-                  showMen && showWomen && styles.checkboxCardActive,
-                ]}
-                onPress={selectAllGenders}
-                activeOpacity={0.8}
-              >
-                <View style={[styles.checkboxCircle, showMen && showWomen && styles.checkboxCircleActive]}>
-                  {showMen && showWomen && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
-                </View>
-                <Text style={[styles.checkboxLabel, showMen && showWomen && styles.checkboxLabelActive]}>
-                  Everyone
-                </Text>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.checkboxCard, showWomen && styles.checkboxCardActive]}
+                  onPress={toggleWomen}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.checkbox, showWomen && styles.checkboxActive]}>
+                    {showWomen && <Check size={14} color="#FFFFFF" />}
+                  </View>
+                  <View style={styles.checkboxLabelCol}>
+                    <Text style={[styles.checkboxLabel, showWomen && styles.checkboxLabelActive]}>Women</Text>
+                    <Text style={styles.checkboxSub}>Female lifters</Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* Max Distance */}
-            <Text style={styles.sectionHeader}>MAX DISTANCE RADIUS</Text>
-            <View style={styles.pillRow}>
-              {[2, 5, 10, 20, 50].map((miles) => (
-                <TouchableOpacity
-                  key={miles}
-                  style={[styles.pill, maxDistance === miles && styles.pillActive]}
-                  onPress={() => setMaxDistance(miles)}
-                >
-                  <Text style={[styles.pillText, maxDistance === miles && styles.pillTextActive]}>
-                    {miles} mi
-                  </Text>
-                </TouchableOpacity>
-              ))}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>MAX DISTANCE: {maxDistance} MILES</Text>
+              <View style={styles.pillRow}>
+                {[5, 10, 25, 50].map((dist) => (
+                  <TouchableOpacity
+                    key={dist}
+                    style={[styles.pill, maxDistance === dist && styles.pillActive]}
+                    onPress={() => {
+                      try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
+                      setMaxDistance(dist);
+                    }}
+                  >
+                    <Text style={[styles.pillText, maxDistance === dist && styles.pillTextActive]}>
+                      {dist} mi
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
 
             {/* Experience Level */}
-            <Text style={styles.sectionHeader}>EXPERIENCE LEVEL</Text>
-            <View style={styles.pillRow}>
-              {['All', 'Beginner', 'Intermediate', 'Advanced', 'Elite Athlete'].map((lvl) => (
-                <TouchableOpacity
-                  key={lvl}
-                  style={[styles.pill, experienceLevel === lvl && styles.pillActive]}
-                  onPress={() => setExperienceLevel(lvl)}
-                >
-                  <Text style={[styles.pillText, experienceLevel === lvl && styles.pillTextActive]}>
-                    {lvl}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>EXPERIENCE LEVEL</Text>
+              <View style={styles.pillRow}>
+                {['All', 'Beginner', 'Intermediate', 'Advanced', 'Elite Athlete'].map((exp) => (
+                  <TouchableOpacity
+                    key={exp}
+                    style={[styles.pill, experienceLevel === exp && styles.pillActive]}
+                    onPress={() => {
+                      try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
+                      setExperienceLevel(exp);
+                    }}
+                  >
+                    <Text style={[styles.pillText, experienceLevel === exp && styles.pillTextActive]}>
+                      {exp}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
 
             {/* Primary Modality */}
-            <Text style={styles.sectionHeader}>TRAINING MODALITY</Text>
-            <View style={styles.pillRow}>
-              {['All', 'Powerlifting', 'Bodybuilding', 'CrossFit', 'HYROX', 'General Fitness'].map((m) => (
-                <TouchableOpacity
-                  key={m}
-                  style={[styles.pill, modality === m && styles.pillActive]}
-                  onPress={() => setModality(m)}
-                >
-                  <Text style={[styles.pillText, modality === m && styles.pillTextActive]}>
-                    {m}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>TRAINING FOCUS / MODALITY</Text>
+              <View style={styles.pillRow}>
+                {[
+                  'All',
+                  'Bodybuilding',
+                  'Calisthenics',
+                  'CrossFit',
+                  'Glute & Lower Body',
+                  'HYROX',
+                  'Olympic Lifting',
+                  'Powerlifting',
+                  'General Fitness',
+                ].map((mod) => (
+                  <TouchableOpacity
+                    key={mod}
+                    style={[styles.pill, modality === mod && styles.pillActive]}
+                    onPress={() => {
+                      try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
+                      setModality(mod);
+                    }}
+                  >
+                    <Text style={[styles.pillText, modality === mod && styles.pillTextActive]}>
+                      {mod}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
 
             {/* Apply Button */}
             <TouchableOpacity style={styles.applyBtn} onPress={handleApply}>
-              <Text style={styles.applyBtnText}>Apply Filters</Text>
+              <Text style={styles.applyBtnText}>Apply Discovery Filters</Text>
             </TouchableOpacity>
           </ScrollView>
-        </View>
-      </View>
+        </Animated.View>
+      </Animated.View>
     </Modal>
   );
 };
@@ -208,29 +317,45 @@ export const FilterModal: React.FC<FilterModalProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.75)',
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
     justifyContent: 'flex-end',
+  },
+  backdropTouchArea: {
+    ...StyleSheet.absoluteFillObject,
   },
   sheet: {
     backgroundColor: '#11141F',
     borderTopLeftRadius: BORDER_RADIUS.xl + 4,
     borderTopRightRadius: BORDER_RADIUS.xl + 4,
+    maxHeight: '90%',
     padding: SPACING.xl,
-    maxHeight: '85%',
-    borderWidth: 1,
+    paddingTop: 10,
+    paddingBottom: 40,
+    borderTopWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   header: {
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+    paddingBottom: SPACING.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  dragPill: {
+    width: 40,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255, 255, 255, 0.35)',
+    marginBottom: 10,
+  },
+  headerContentRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: SPACING.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.06)',
-    paddingBottom: SPACING.sm,
+    width: '100%',
   },
   title: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '800',
     color: COLORS.textPrimary,
   },
@@ -241,16 +366,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
     padding: SPACING.md,
     borderRadius: BORDER_RADIUS.lg,
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.lg,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: 'rgba(255, 255, 255, 0.06)',
   },
   toggleTextCol: {
     flex: 1,
-    marginRight: 10,
   },
   toggleTitle: {
     fontSize: 14,
@@ -262,73 +386,90 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     marginTop: 2,
   },
-  sectionHeader: {
+  section: {
+    marginBottom: SPACING.lg,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
+  },
+  sectionTitle: {
     fontSize: 11,
     fontWeight: '800',
     color: COLORS.textMuted,
     letterSpacing: 1,
-    marginTop: SPACING.md,
-    marginBottom: SPACING.sm,
+  },
+  selectAllText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.primary,
   },
   checkboxRow: {
     flexDirection: 'row',
-    gap: 8,
-    marginBottom: SPACING.xs,
+    gap: 12,
   },
   checkboxCard: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    paddingVertical: 12,
-    paddingHorizontal: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    padding: SPACING.md,
     borderRadius: BORDER_RADIUS.lg,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: 'rgba(255, 255, 255, 0.06)',
   },
   checkboxCardActive: {
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
-    borderColor: COLORS.primary,
+    backgroundColor: 'rgba(16, 185, 129, 0.08)',
+    borderColor: 'rgba(16, 185, 129, 0.3)',
   },
-  checkboxCircle: {
+  checkbox: {
     width: 20,
     height: 20,
-    borderRadius: 10,
-    borderWidth: 1.5,
+    borderRadius: 6,
+    borderWidth: 2,
     borderColor: COLORS.textMuted,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 8,
+    marginRight: 10,
   },
-  checkboxCircleActive: {
+  checkboxActive: {
     backgroundColor: COLORS.primary,
     borderColor: COLORS.primary,
   },
+  checkboxLabelCol: {
+    flex: 1,
+  },
   checkboxLabel: {
-    color: COLORS.textSecondary,
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
   },
   checkboxLabelActive: {
     color: '#FFFFFF',
-    fontWeight: '700',
+  },
+  checkboxSub: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    marginTop: 1,
   },
   pillRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+    marginTop: SPACING.xs,
   },
   pill: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    paddingHorizontal: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: BORDER_RADIUS.full,
+    borderRadius: BORDER_RADIUS.md,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   pillActive: {
-    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    backgroundColor: COLORS.primary,
     borderColor: COLORS.primary,
   },
   pillText: {
@@ -337,7 +478,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   pillTextActive: {
-    color: COLORS.primary,
+    color: '#FFFFFF',
     fontWeight: '700',
   },
   applyBtn: {
@@ -345,12 +486,12 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: BORDER_RADIUS.lg,
     alignItems: 'center',
-    marginTop: SPACING.xl,
+    marginTop: SPACING.sm,
     marginBottom: SPACING.md,
   },
   applyBtnText: {
     color: '#FFFFFF',
+    fontSize: 14,
     fontWeight: '700',
-    fontSize: 15,
   },
 });
