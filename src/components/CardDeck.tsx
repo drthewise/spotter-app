@@ -23,7 +23,7 @@ interface CardDeckProps {
   onSwipeLeft: (profile: UserProfile) => void;
   onSwipeRight: (profile: UserProfile) => void;
   onSuperSpot: (profile: UserProfile, details: SpotProposalDetails) => void;
-  onOpenFilter: () => void;
+  onOpenFilter?: () => void;
 }
 
 export const CardDeck: React.FC<CardDeckProps> = ({
@@ -201,10 +201,6 @@ export const CardDeck: React.FC<CardDeckProps> = ({
 
         <TouchableOpacity style={[styles.mainActionBtn, styles.connectBtn]} onPress={() => forceSwipe('right')}>
           <Heart size={28} color={COLORS.connect} strokeWidth={2.5} fill={COLORS.connect} />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.smallActionBtn} onPress={onOpenFilter}>
-          <SlidersHorizontal size={18} color={COLORS.textSecondary} />
         </TouchableOpacity>
       </View>
 
