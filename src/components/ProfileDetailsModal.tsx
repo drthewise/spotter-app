@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -55,6 +55,8 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
   const [fullscreenPhotoVisible, setFullscreenPhotoVisible] = useState(false);
   const [fullscreenPhotoIdx, setFullscreenPhotoIdx] = useState(0);
 
+  const lightboxScrollRef = useRef<ScrollView>(null);
+
   const isSameGym = profile.primaryGym.brand === CURRENT_USER.primaryGym.brand;
   const currentAvatar = profile.photos[photoIndex] || profile.photos[0];
   const avatarSource = typeof currentAvatar === 'string' ? { uri: currentAvatar } : currentAvatar;
@@ -75,20 +77,17 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
     } catch (e) {}
     setFullscreenPhotoIdx(idx);
     setFullscreenPhotoVisible(true);
+    setTimeout(() => {
+      lightboxScrollRef.current?.scrollTo({ x: idx * SCREEN_WIDTH, animated: false });
+    }, 80);
   };
 
-  const nextFullscreen = () => {
+  const goToPhoto = (idx: number) => {
     try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
-    setFullscreenPhotoIdx((prev) => (prev + 1) % profile.photos.length);
+    const safeIdx = Math.max(0, Math.min(idx, profile.photos.length - 1));
+    setFullscreenPhotoIdx(safeIdx);
+    lightboxScrollRef.current?.scrollTo({ x: safeIdx * SCREEN_WIDTH, animated: true });
   };
-
-  const prevFullscreen = () => {
-    try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
-    setFullscreenPhotoIdx((prev) => (prev - 1 + profile.photos.length) % profile.photos.length);
-  };
-
-  const currentFullscreenPhoto = profile.photos[fullscreenPhotoIdx] || profile.photos[0];
-  const fullscreenSource = typeof currentFullscreenPhoto === 'string' ? { uri: currentFullscreenPhoto } : currentFullscreenPhoto;
 
   return (
     <Modal visible={visible} animationType="slide" transparent={true}>
@@ -303,7 +302,7 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
             </TouchableOpacity>
           </ScrollView>
 
-          {/* Fullscreen Photo Lightbox Modal */}
+          {/* Fullscreen Photo Lightbox with Horizontal Paging Swipe */}
           <Modal visible={fullscreenPhotoVisible} animationType="fade" transparent={false}>
             <SafeAreaView style={styles.fullscreenContainer}>
               {/* Top Controls */}
@@ -317,24 +316,53 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
                 <View style={{ width: 40 }} />
               </View>
 
-              {/* Main Photo Viewer */}
+              {/* Native Paginated Horizontal Swipeable Photo Carousel */}
               <View style={styles.fullscreenMainPhotoArea}>
-                <Image source={fullscreenSource} style={styles.fullscreenImage} resizeMode="contain" />
+                <ScrollView
+                  ref={lightboxScrollRef}
+                  horizontal
+                  pagingEnabled
+                  showsHorizontalScrollIndicator={false}
+                  onMomentumScrollEnd={(e) => {
+                    const idx = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+                    setFullscreenPhotoIdx(idx);
+                  }}
+                  style={{ flex: 1 }}
+                >
+                  {profile.photos.map((p, idx) => {
+                    const src = typeof p === 'string' ? { uri: p } : p;
+                    return (
+                      <View key={idx} style={styles.fullscreenSlide}>
+                        <Image source={src} style={styles.fullscreenImage} resizeMode="contain" />
+                      </View>
+                    );
+                  })}
+                </ScrollView>
 
-                {/* Left / Right Nav Touch Areas */}
+                {/* Left / Right Nav Touch Overlays */}
                 {profile.photos.length > 1 && (
                   <>
-                    <TouchableOpacity style={styles.leftNavTouch} onPress={prevFullscreen}>
-                      <View style={styles.navArrowCircle}>
-                        <ChevronLeft size={24} color="#FFFFFF" />
-                      </View>
-                    </TouchableOpacity>
+                    {fullscreenPhotoIdx > 0 && (
+                      <TouchableOpacity
+                        style={styles.leftNavTouch}
+                        onPress={() => goToPhoto(fullscreenPhotoIdx - 1)}
+                      >
+                        <View style={styles.navArrowCircle}>
+                          <ChevronLeft size={24} color="#FFFFFF" />
+                        </View>
+                      </TouchableOpacity>
+                    )}
 
-                    <TouchableOpacity style={styles.rightNavTouch} onPress={nextFullscreen}>
-                      <View style={styles.navArrowCircle}>
-                        <ChevronRight size={24} color="#FFFFFF" />
-                      </View>
-                    </TouchableOpacity>
+                    {fullscreenPhotoIdx < profile.photos.length - 1 && (
+                      <TouchableOpacity
+                        style={styles.rightNavTouch}
+                        onPress={() => goToPhoto(fullscreenPhotoIdx + 1)}
+                      >
+                        <View style={styles.navArrowCircle}>
+                          <ChevronRight size={24} color="#FFFFFF" />
+                        </View>
+                      </TouchableOpacity>
+                    )}
                   </>
                 )}
               </View>
@@ -346,7 +374,7 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
                   return (
                     <TouchableOpacity
                       key={idx}
-                      onPress={() => setFullscreenPhotoIdx(idx)}
+                      onPress={() => goToPhoto(idx)}
                       style={[
                         styles.fullscreenThumb,
                         fullscreenPhotoIdx === idx && styles.fullscreenThumbActive,
@@ -736,9 +764,13 @@ const styles = StyleSheet.create({
   },
   fullscreenMainPhotoArea: {
     flex: 1,
+    position: 'relative',
+  },
+  fullscreenSlide: {
+    width: SCREEN_WIDTH,
+    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',
   },
   fullscreenImage: {
     width: SCREEN_WIDTH,
