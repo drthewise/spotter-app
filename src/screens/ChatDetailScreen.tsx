@@ -175,26 +175,34 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
       {currentSession ? (
         <View style={styles.workoutBanner}>
           <View style={styles.bannerLeft}>
-            <Dumbbell size={18} color={COLORS.primary} />
-            <View style={{ marginLeft: 8 }}>
-              <Text style={styles.bannerTitle}>{currentSession.scheduledDate} @ {currentSession.scheduledTime}</Text>
-              <Text style={styles.bannerSub}>{currentSession.splitFocus} • {currentSession.gymName}</Text>
+            <View style={styles.sessionIconCircle}>
+              <Dumbbell size={16} color={COLORS.primary} />
+            </View>
+            <View style={styles.bannerTextCol}>
+              <Text style={styles.bannerTitle} numberOfLines={1} ellipsizeMode="tail">
+                {currentSession.scheduledDate} @ {currentSession.scheduledTime}
+              </Text>
+              <Text style={styles.bannerSub} numberOfLines={1} ellipsizeMode="tail">
+                {currentSession.splitFocus} • {currentSession.gymName}
+              </Text>
             </View>
           </View>
-          <View style={{ flexDirection: 'row', gap: 6 }}>
+          <View style={styles.bannerActionsCol}>
             <TouchableOpacity
               style={[styles.checkInBtn, checkedIn && styles.checkInBtnDone]}
               onPress={() => setCheckedIn(!checkedIn)}
+              activeOpacity={0.8}
             >
-              <CheckCircle size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
-              <Text style={styles.checkInBtnText}>{checkedIn ? 'Checked In' : 'I Am Here'}</Text>
+              <CheckCircle size={13} color="#FFFFFF" style={{ marginRight: 4 }} />
+              <Text style={styles.checkInBtnText}>{checkedIn ? 'Checked In' : 'Check In'}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[styles.reviewBtn, sessionReviewed && styles.reviewBtnDone]}
               onPress={() => setReviewModalVisible(true)}
+              activeOpacity={0.8}
             >
-              <Star size={13} color="#FFFFFF" style={{ marginRight: 3 }} />
+              <Star size={12} color={sessionReviewed ? '#FBBF24' : '#FBBF24'} fill={sessionReviewed ? '#FBBF24' : 'none'} style={{ marginRight: 3 }} />
               <Text style={styles.reviewBtnText}>{sessionReviewed ? 'Reviewed' : 'Review'}</Text>
             </TouchableOpacity>
           </View>
@@ -383,19 +391,35 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: 'rgba(16, 185, 129, 0.12)',
     paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
+    paddingVertical: SPACING.sm + 2,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(16, 185, 129, 0.25)',
+    gap: 8,
   },
   noSessionBanner: {
     backgroundColor: 'rgba(139, 92, 246, 0.1)',
     borderBottomColor: 'rgba(139, 92, 246, 0.25)',
     paddingVertical: 10,
   },
+  sessionIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(16, 185, 129, 0.18)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
   bannerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    minWidth: 0,
+    marginRight: 4,
+  },
+  bannerTextCol: {
+    flex: 1,
+    minWidth: 0,
   },
   proposeIconCircle: {
     width: 30,
@@ -418,6 +442,13 @@ const styles = StyleSheet.create({
   bannerSub: {
     color: COLORS.textSecondary,
     fontSize: 11,
+    marginTop: 1,
+  },
+  bannerActionsCol: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexShrink: 0,
   },
   proposeActionPill: {
     flexDirection: 'row',
@@ -426,6 +457,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: BORDER_RADIUS.full,
+    flexShrink: 0,
   },
   proposeActionText: {
     color: '#FFFFFF',
@@ -436,7 +468,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.primary,
-    paddingHorizontal: 9,
+    paddingHorizontal: 8,
     paddingVertical: 6,
     borderRadius: BORDER_RADIUS.full,
   },
@@ -452,7 +484,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(245, 158, 11, 0.2)',
-    paddingHorizontal: 9,
+    paddingHorizontal: 8,
     paddingVertical: 6,
     borderRadius: BORDER_RADIUS.full,
     borderWidth: 1,
