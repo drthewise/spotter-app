@@ -11,13 +11,25 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { ArrowLeft, Dumbbell, Send, ShieldCheck, CheckCircle, ShieldAlert, Star, ChevronRight } from 'lucide-react-native';
+import {
+  ArrowLeft,
+  Dumbbell,
+  Send,
+  ShieldCheck,
+  CheckCircle,
+  ShieldAlert,
+  Star,
+  ChevronRight,
+  Zap,
+  Calendar,
+} from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
-import { Match, ChatMessage, WorkoutReview } from '../types';
+import { Match, ChatMessage, WorkoutReview, WorkoutSession } from '../types';
 import { COLORS, BORDER_RADIUS, SPACING } from '../constants/theme';
 import { ReportUserModal } from '../components/ReportUserModal';
 import { PostWorkoutReviewModal } from '../components/PostWorkoutReviewModal';
 import { ProfileDetailsModal } from '../components/ProfileDetailsModal';
+import { RequestSpotModal, SpotProposalDetails } from '../components/RequestSpotModal';
 import { CURRENT_USER } from '../data/mockData';
 
 interface ChatDetailScreenProps {
@@ -41,15 +53,18 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
   };
 
   const [messages, setMessages] = useState<ChatMessage[]>(() => getInitialMessages(match));
+  const [currentSession, setCurrentSession] = useState<WorkoutSession | undefined>(match.activeSession);
   const [inputText, setInputText] = useState('');
   const [checkedIn, setCheckedIn] = useState(match.activeSession?.userCheckedIn || false);
   const [reportModalVisible, setReportModalVisible] = useState(false);
   const [reviewModalVisible, setReviewModalVisible] = useState(false);
   const [profileModalVisible, setProfileModalVisible] = useState(false);
+  const [requestSpotModalVisible, setRequestSpotModalVisible] = useState(false);
   const [sessionReviewed, setSessionReviewed] = useState(match.activeSession?.reviewed || false);
 
   useEffect(() => {
     setMessages(getInitialMessages(match));
+    setCurrentSession(match.activeSession);
     setCheckedIn(match.activeSession?.userCheckedIn || false);
     setSessionReviewed(match.activeSession?.reviewed || false);
     setInputText('');
@@ -69,6 +84,36 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
     setInputText('');
   };
 
+  const handleProposeSpotSubmitted = (details: SpotProposalDetails) => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    } catch (e) {}
+
+    const newSession: WorkoutSession = {
+      id: 'session_' + Date.now(),
+      matchId: match.id,
+      scheduledDate: details.day,
+      scheduledTime: details.time,
+      gymName: match.partner.primaryGym.branchName,
+      splitFocus: details.split,
+      userCheckedIn: false,
+      partnerCheckedIn: false,
+      status: 'scheduled',
+    };
+
+    setCurrentSession(newSession);
+    match.activeSession = newSession;
+
+    const proposalMsg: ChatMessage = {
+      id: 'prop_' + Date.now(),
+      senderId: CURRENT_USER.id,
+      text: '⚡ Workout Locked In for ' + details.day + ' @ ' + details.time + ' (' + details.split + ') at ' + match.partner.primaryGym.branchName + (details.note ? ': "' + details.note + '"' : ''),
+      timestamp: 'Just now',
+    };
+
+    setMessages((prev) => [...prev, proposalMsg]);
+  };
+
   const handleReviewSubmitted = (review: WorkoutReview) => {
     setSessionReviewed(true);
     const systemMsg: ChatMessage = {
@@ -82,7 +127,6 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
   };
 
   const partnerPhotoSrc = typeof match.partner.photos[0] === 'string' ? { uri: match.partner.photos[0] } : match.partner.photos[0];
-  const session = match.activeSession;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -128,13 +172,13 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
       </View>
 
       {/* Workout Session Banner */}
-      {session ? (
+      {currentSession ? (
         <View style={styles.workoutBanner}>
           <View style={styles.bannerLeft}>
             <Dumbbell size={18} color={COLORS.primary} />
             <View style={{ marginLeft: 8 }}>
-              <Text style={styles.bannerTitle}>{session.scheduledDate} @ {session.scheduledTime}</Text>
-              <Text style={styles.bannerSub}>{session.splitFocus} • {session.gymName}</Text>
+              <Text style={styles.bannerTitle}>{currentSession.scheduledDate} @ {currentSession.scheduledTime}</Text>
+              <Text style={styles.bannerSub}>{currentSession.splitFocus} • {currentSession.gymName}</Text>
             </View>
           </View>
           <View style={{ flexDirection: 'row', gap: 6 }}>
@@ -156,15 +200,29 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
           </View>
         </View>
       ) : (
-        <View style={[styles.workoutBanner, styles.noSessionBanner]}>
+        /* Tappable Proposal Card when No Locked-In Session */
+        <TouchableOpacity
+          style={[styles.workoutBanner, styles.noSessionBanner]}
+          onPress={() => {
+            try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
+            setRequestSpotModalVisible(true);
+          }}
+          activeOpacity={0.75}
+        >
           <View style={styles.bannerLeft}>
-            <Dumbbell size={16} color={COLORS.textSecondary} />
-            <View style={{ marginLeft: 8 }}>
+            <View style={styles.proposeIconCircle}>
+              <Calendar size={15} color={COLORS.accentPurple} />
+            </View>
+            <View style={{ marginLeft: 8, flex: 1 }}>
               <Text style={styles.noSessionTitle}>No Locked-In Session Yet</Text>
-              <Text style={styles.bannerSub}>Coordinate a workout time below or propose a spot</Text>
+              <Text style={styles.bannerSub}>Tap to propose a workout time & split focus</Text>
             </View>
           </View>
-        </View>
+          <View style={styles.proposeActionPill}>
+            <Zap size={12} color="#FFFFFF" style={{ marginRight: 4 }} />
+            <Text style={styles.proposeActionText}>Propose Time</Text>
+          </View>
+        </TouchableOpacity>
       )}
 
       {/* Messages List */}
@@ -210,6 +268,14 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+
+      {/* Propose Workout Session Modal */}
+      <RequestSpotModal
+        visible={requestSpotModalVisible}
+        profile={match.partner}
+        onClose={() => setRequestSpotModalVisible(false)}
+        onSubmit={handleProposeSpotSubmitted}
+      />
 
       {/* Profile Details Modal when tapping avatar/name */}
       <ProfileDetailsModal
@@ -322,13 +388,22 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(16, 185, 129, 0.25)',
   },
   noSessionBanner: {
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+    borderBottomColor: 'rgba(139, 92, 246, 0.25)',
+    paddingVertical: 10,
   },
   bannerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+  },
+  proposeIconCircle: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: 'rgba(139, 92, 246, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   bannerTitle: {
     color: COLORS.textPrimary,
@@ -336,13 +411,26 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   noSessionTitle: {
-    color: COLORS.textSecondary,
-    fontSize: 12,
-    fontWeight: '600',
+    color: '#DDD6FE',
+    fontSize: 13,
+    fontWeight: '700',
   },
   bannerSub: {
     color: COLORS.textSecondary,
-    fontSize: 10,
+    fontSize: 11,
+  },
+  proposeActionPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.accentPurple,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: BORDER_RADIUS.full,
+  },
+  proposeActionText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700',
   },
   checkInBtn: {
     flexDirection: 'row',
