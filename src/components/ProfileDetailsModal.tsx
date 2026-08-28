@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -19,7 +19,6 @@ import {
   Heart,
   ChevronDown,
   ShieldAlert,
-  Camera,
   ChevronLeft,
   ChevronRight,
   Maximize2,
@@ -51,25 +50,15 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
   onConnect,
 }) => {
   const [reportModalVisible, setReportModalVisible] = useState(false);
-  const [photoIndex, setPhotoIndex] = useState(0);
   const [fullscreenPhotoVisible, setFullscreenPhotoVisible] = useState(false);
   const [fullscreenPhotoIdx, setFullscreenPhotoIdx] = useState(0);
 
   const lightboxScrollRef = useRef<ScrollView>(null);
 
   const isSameGym = profile.primaryGym.brand === CURRENT_USER.primaryGym.brand;
-  const currentAvatar = profile.photos[photoIndex] || profile.photos[0];
-  const avatarSource = typeof currentAvatar === 'string' ? { uri: currentAvatar } : currentAvatar;
+  const primaryAvatar = profile.photos[0];
+  const avatarSource = typeof primaryAvatar === 'string' ? { uri: primaryAvatar } : primaryAvatar;
   const benchmarks = profile.strengthBenchmarks;
-
-  const cycleAvatar = () => {
-    try {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    } catch (e) {}
-    if (profile.photos.length > 1) {
-      setPhotoIndex((prev) => (prev + 1) % profile.photos.length);
-    }
-  };
 
   const openFullscreen = (idx: number) => {
     try {
@@ -119,22 +108,11 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
           >
-            {/* Header Info Card with Tappable Avatar */}
+            {/* Header Info Card with Clean Static Avatar */}
             <View style={styles.topProfileRow}>
-              <TouchableOpacity
-                style={styles.avatarContainer}
-                onPress={cycleAvatar}
-                onLongPress={() => openFullscreen(photoIndex)}
-                activeOpacity={0.8}
-              >
+              <View style={styles.avatarContainer}>
                 <Image source={avatarSource} style={styles.avatar} />
-                <View style={styles.photoCountBadge}>
-                  <Camera size={10} color="#FFFFFF" style={{ marginRight: 2 }} />
-                  <Text style={styles.photoCountText}>
-                    {photoIndex + 1}/{profile.photos.length}
-                  </Text>
-                </View>
-              </TouchableOpacity>
+              </View>
 
               <View style={styles.topProfileInfo}>
                 <Text style={styles.name}>
@@ -170,7 +148,7 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
                     return (
                       <TouchableOpacity
                         key={idx}
-                        style={[styles.galleryCard, photoIndex === idx && styles.galleryCardActive]}
+                        style={styles.galleryCard}
                         onPress={() => openFullscreen(idx)}
                         activeOpacity={0.85}
                       >
@@ -469,33 +447,14 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
   },
   avatarContainer: {
-    position: 'relative',
     marginRight: SPACING.md,
   },
   avatar: {
-    width: 76,
-    height: 76,
-    borderRadius: 38,
-    borderWidth: 2.5,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    borderWidth: 2,
     borderColor: COLORS.primary,
-  },
-  photoCountBadge: {
-    position: 'absolute',
-    bottom: -2,
-    right: -2,
-    backgroundColor: '#000000',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: BORDER_RADIUS.full,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-  },
-  photoCountText: {
-    color: '#FFFFFF',
-    fontSize: 9,
-    fontWeight: '800',
   },
   topProfileInfo: {
     flex: 1,
@@ -544,12 +503,9 @@ const styles = StyleSheet.create({
     height: 160,
     borderRadius: BORDER_RADIUS.md,
     overflow: 'hidden',
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
     position: 'relative',
-  },
-  galleryCardActive: {
-    borderColor: COLORS.primary,
   },
   galleryImage: {
     width: '100%',
