@@ -64,15 +64,16 @@ const EXPERIENCE_OPTIONS: ExperienceLevel[] = [
 
 const MODALITY_OPTIONS: Modality[] = [
   'Bodybuilding',
+  'Powerlifting',
+  'Olympic Lifting',
   'Calisthenics',
   'CrossFit',
-  'General Fitness',
+  'HYROX & Hybrid',
   'Glute & Lower Body',
-  'HYROX',
-  'Olympic Lifting',
+  'HIIT & Circuits',
   'Pilates & Mobility',
-  'Powerlifting',
-  'Running / Cardio',
+  'Running & Cardio',
+  'General Fitness',
 ];
 
 const SPOTTING_STYLES = [

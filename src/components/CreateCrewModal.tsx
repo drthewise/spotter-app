@@ -24,11 +24,16 @@ interface CreateCrewModalProps {
 }
 
 const MODALITY_CHOICES: Modality[] = [
-  'Powerlifting',
   'Bodybuilding',
-  'CrossFit',
-  'HYROX',
+  'Powerlifting',
+  'Olympic Lifting',
   'Calisthenics',
+  'CrossFit',
+  'HYROX & Hybrid',
+  'Glute & Lower Body',
+  'HIIT & Circuits',
+  'Pilates & Mobility',
+  'Running & Cardio',
   'General Fitness',
 ];
 

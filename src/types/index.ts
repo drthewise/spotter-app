@@ -3,13 +3,14 @@ export type ExperienceLevel = 'Beginner' | 'Intermediate' | 'Advanced' | 'Elite 
 export type Modality = 
   | 'Bodybuilding' 
   | 'Powerlifting' 
-  | 'Glute & Lower Body'
-  | 'CrossFit' 
-  | 'HYROX' 
-  | 'Calisthenics' 
   | 'Olympic Lifting' 
-  | 'Running / Cardio' 
+  | 'Calisthenics' 
+  | 'CrossFit' 
+  | 'HYROX & Hybrid' 
+  | 'Glute & Lower Body'
+  | 'HIIT & Circuits'
   | 'Pilates & Mobility'
+  | 'Running & Cardio'
   | 'General Fitness';
 
 export type WorkoutSplit = 

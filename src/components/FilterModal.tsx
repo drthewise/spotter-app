@@ -301,12 +301,15 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                 {[
                   'All',
                   'Bodybuilding',
+                  'Powerlifting',
+                  'Olympic Lifting',
                   'Calisthenics',
                   'CrossFit',
+                  'HYROX & Hybrid',
                   'Glute & Lower Body',
-                  'HYROX',
-                  'Olympic Lifting',
-                  'Powerlifting',
+                  'HIIT & Circuits',
+                  'Pilates & Mobility',
+                  'Running & Cardio',
                   'General Fitness',
                 ].map((mod) => (
                   <TouchableOpacity
