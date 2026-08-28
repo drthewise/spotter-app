@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Image,
   Dimensions,
+  SafeAreaView,
 } from 'react-native';
 import {
   X,
@@ -18,7 +19,12 @@ import {
   Heart,
   ChevronDown,
   ShieldAlert,
+  Camera,
+  ChevronLeft,
+  ChevronRight,
+  Maximize2,
 } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
 import { UserProfile } from '../types';
 import { COLORS, BORDER_RADIUS, SPACING } from '../constants/theme';
 import { GymBadge } from './GymBadge';
@@ -27,7 +33,7 @@ import { ScheduleMatrix } from './ScheduleMatrix';
 import { ReportUserModal } from './ReportUserModal';
 import { CURRENT_USER } from '../data/mockData';
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface ProfileDetailsModalProps {
   visible: boolean;
@@ -45,11 +51,44 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
   onConnect,
 }) => {
   const [reportModalVisible, setReportModalVisible] = useState(false);
+  const [photoIndex, setPhotoIndex] = useState(0);
+  const [fullscreenPhotoVisible, setFullscreenPhotoVisible] = useState(false);
+  const [fullscreenPhotoIdx, setFullscreenPhotoIdx] = useState(0);
 
   const isSameGym = profile.primaryGym.brand === CURRENT_USER.primaryGym.brand;
-  const avatarPhoto = profile.photos[1] || profile.photos[0];
-  const avatarSource = typeof avatarPhoto === 'string' ? { uri: avatarPhoto } : avatarPhoto;
+  const currentAvatar = profile.photos[photoIndex] || profile.photos[0];
+  const avatarSource = typeof currentAvatar === 'string' ? { uri: currentAvatar } : currentAvatar;
   const benchmarks = profile.strengthBenchmarks;
+
+  const cycleAvatar = () => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } catch (e) {}
+    if (profile.photos.length > 1) {
+      setPhotoIndex((prev) => (prev + 1) % profile.photos.length);
+    }
+  };
+
+  const openFullscreen = (idx: number) => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } catch (e) {}
+    setFullscreenPhotoIdx(idx);
+    setFullscreenPhotoVisible(true);
+  };
+
+  const nextFullscreen = () => {
+    try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
+    setFullscreenPhotoIdx((prev) => (prev + 1) % profile.photos.length);
+  };
+
+  const prevFullscreen = () => {
+    try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
+    setFullscreenPhotoIdx((prev) => (prev - 1 + profile.photos.length) % profile.photos.length);
+  };
+
+  const currentFullscreenPhoto = profile.photos[fullscreenPhotoIdx] || profile.photos[0];
+  const fullscreenSource = typeof currentFullscreenPhoto === 'string' ? { uri: currentFullscreenPhoto } : currentFullscreenPhoto;
 
   return (
     <Modal visible={visible} animationType="slide" transparent={true}>
@@ -81,9 +120,23 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
           >
-            {/* Header Info Card */}
+            {/* Header Info Card with Tappable Avatar */}
             <View style={styles.topProfileRow}>
-              <Image source={avatarSource} style={styles.avatar} />
+              <TouchableOpacity
+                style={styles.avatarContainer}
+                onPress={cycleAvatar}
+                onLongPress={() => openFullscreen(photoIndex)}
+                activeOpacity={0.8}
+              >
+                <Image source={avatarSource} style={styles.avatar} />
+                <View style={styles.photoCountBadge}>
+                  <Camera size={10} color="#FFFFFF" style={{ marginRight: 2 }} />
+                  <Text style={styles.photoCountText}>
+                    {photoIndex + 1}/{profile.photos.length}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
               <View style={styles.topProfileInfo}>
                 <Text style={styles.name}>
                   {profile.name}, <Text style={styles.age}>{profile.age}</Text>
@@ -105,6 +158,37 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
               </View>
             </View>
 
+            {/* Photos & Gym Fit Checks Gallery Reel */}
+            {profile.photos.length > 0 && (
+              <View style={styles.section}>
+                <View style={styles.photoSectionHeader}>
+                  <Text style={styles.sectionTitle}>PHOTOS & GYM FIT CHECKS ({profile.photos.length})</Text>
+                  <Text style={styles.tapToExpandText}>Tap photo to expand</Text>
+                </View>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.photoGalleryRow}>
+                  {profile.photos.map((p, idx) => {
+                    const src = typeof p === 'string' ? { uri: p } : p;
+                    return (
+                      <TouchableOpacity
+                        key={idx}
+                        style={[styles.galleryCard, photoIndex === idx && styles.galleryCardActive]}
+                        onPress={() => openFullscreen(idx)}
+                        activeOpacity={0.85}
+                      >
+                        <Image source={src} style={styles.galleryImage} />
+                        <View style={styles.galleryExpandIcon}>
+                          <Maximize2 size={12} color="#FFFFFF" />
+                        </View>
+                        <View style={styles.photoIndexTag}>
+                          <Text style={styles.photoIndexTagText}>#{idx + 1}</Text>
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+            )}
+
             {/* Reliability & Experience Badges */}
             <View style={styles.statGrid}>
               <View style={styles.statBox}>
@@ -119,7 +203,6 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
               </View>
             </View>
 
-            
             {/* Working Weights & Strength Benchmarks */}
             {benchmarks && benchmarks.benchmarks && benchmarks.benchmarks.length > 0 && (
               <View style={styles.section}>
@@ -220,6 +303,63 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
             </TouchableOpacity>
           </ScrollView>
 
+          {/* Fullscreen Photo Lightbox Modal */}
+          <Modal visible={fullscreenPhotoVisible} animationType="fade" transparent={false}>
+            <SafeAreaView style={styles.fullscreenContainer}>
+              {/* Top Controls */}
+              <View style={styles.fullscreenHeader}>
+                <TouchableOpacity onPress={() => setFullscreenPhotoVisible(false)} style={styles.fullscreenCloseBtn}>
+                  <X size={24} color="#FFFFFF" />
+                </TouchableOpacity>
+                <Text style={styles.fullscreenCounter}>
+                  {fullscreenPhotoIdx + 1} of {profile.photos.length}
+                </Text>
+                <View style={{ width: 40 }} />
+              </View>
+
+              {/* Main Photo Viewer */}
+              <View style={styles.fullscreenMainPhotoArea}>
+                <Image source={fullscreenSource} style={styles.fullscreenImage} resizeMode="contain" />
+
+                {/* Left / Right Nav Touch Areas */}
+                {profile.photos.length > 1 && (
+                  <>
+                    <TouchableOpacity style={styles.leftNavTouch} onPress={prevFullscreen}>
+                      <View style={styles.navArrowCircle}>
+                        <ChevronLeft size={24} color="#FFFFFF" />
+                      </View>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.rightNavTouch} onPress={nextFullscreen}>
+                      <View style={styles.navArrowCircle}>
+                        <ChevronRight size={24} color="#FFFFFF" />
+                      </View>
+                    </TouchableOpacity>
+                  </>
+                )}
+              </View>
+
+              {/* Bottom Thumbnail Strip */}
+              <View style={styles.fullscreenThumbStrip}>
+                {profile.photos.map((p, idx) => {
+                  const src = typeof p === 'string' ? { uri: p } : p;
+                  return (
+                    <TouchableOpacity
+                      key={idx}
+                      onPress={() => setFullscreenPhotoIdx(idx)}
+                      style={[
+                        styles.fullscreenThumb,
+                        fullscreenPhotoIdx === idx && styles.fullscreenThumbActive,
+                      ]}
+                    >
+                      <Image source={src} style={styles.thumbImage} />
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </SafeAreaView>
+          </Modal>
+
           {/* Report User Modal */}
           <ReportUserModal
             visible={reportModalVisible}
@@ -243,7 +383,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheetContainer: {
-    height: SCREEN_HEIGHT * 0.84,
+    height: SCREEN_HEIGHT * 0.86,
     backgroundColor: '#11141F',
     borderTopLeftRadius: BORDER_RADIUS.xl + 4,
     borderTopRightRadius: BORDER_RADIUS.xl + 4,
@@ -298,15 +438,36 @@ const styles = StyleSheet.create({
   topProfileRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: SPACING.lg,
+    marginBottom: SPACING.md,
+  },
+  avatarContainer: {
+    position: 'relative',
+    marginRight: SPACING.md,
   },
   avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    marginRight: SPACING.md,
-    borderWidth: 2,
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    borderWidth: 2.5,
     borderColor: COLORS.primary,
+  },
+  photoCountBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    backgroundColor: '#000000',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: BORDER_RADIUS.full,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+  },
+  photoCountText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '800',
   },
   topProfileInfo: {
     flex: 1,
@@ -335,10 +496,67 @@ const styles = StyleSheet.create({
   gymRow: {
     flexDirection: 'row',
   },
+  photoSectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  tapToExpandText: {
+    fontSize: 10,
+    color: COLORS.primary,
+    fontWeight: '600',
+  },
+  photoGalleryRow: {
+    gap: 10,
+    paddingVertical: 4,
+  },
+  galleryCard: {
+    width: 120,
+    height: 160,
+    borderRadius: BORDER_RADIUS.md,
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    position: 'relative',
+  },
+  galleryCardActive: {
+    borderColor: COLORS.primary,
+  },
+  galleryImage: {
+    width: '100%',
+    height: '100%',
+  },
+  galleryExpandIcon: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  photoIndexTag: {
+    position: 'absolute',
+    bottom: 6,
+    left: 6,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  photoIndexTagText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '700',
+  },
   statGrid: {
     flexDirection: 'row',
     gap: 10,
     marginBottom: SPACING.lg,
+    marginTop: SPACING.sm,
   },
   statBox: {
     flex: 1,
@@ -491,5 +709,84 @@ const styles = StyleSheet.create({
     color: '#F87171',
     fontSize: 12,
     fontWeight: '700',
+  },
+  fullscreenContainer: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
+  fullscreenHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+  },
+  fullscreenCloseBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullscreenCounter: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  fullscreenMainPhotoArea: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  fullscreenImage: {
+    width: SCREEN_WIDTH,
+    height: '100%',
+  },
+  leftNavTouch: {
+    position: 'absolute',
+    left: 10,
+    top: '45%',
+    padding: 10,
+  },
+  rightNavTouch: {
+    position: 'absolute',
+    right: 10,
+    top: '45%',
+    padding: 10,
+  },
+  navArrowCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  fullscreenThumbStrip: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 12,
+    paddingVertical: SPACING.lg,
+    backgroundColor: '#000000',
+  },
+  fullscreenThumb: {
+    width: 50,
+    height: 50,
+    borderRadius: 6,
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  fullscreenThumbActive: {
+    borderColor: COLORS.primary,
+    borderWidth: 2,
+  },
+  thumbImage: {
+    width: '100%',
+    height: '100%',
   },
 });
