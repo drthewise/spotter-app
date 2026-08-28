@@ -16,10 +16,14 @@ import {
   ShieldCheck,
   Check,
   Users,
+  MapPin,
+  Building2,
+  ChevronRight,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { CURRENT_USER } from '../data/mockData';
 import { ScheduleMatrix } from '../components/ScheduleMatrix';
+import { GymPickerModal } from '../components/GymPickerModal';
 import { COLORS, BORDER_RADIUS, SPACING } from '../constants/theme';
 import { ScheduleDay, TimeSlot } from '../types';
 
@@ -30,6 +34,8 @@ export const ProfileScreen: React.FC = () => {
   const [distanceFuzzing, setDistanceFuzzing] = useState(CURRENT_USER.privacy.distanceFuzzing);
   const [gymTier, setGymTier] = useState(CURRENT_USER.privacy.gymVisibility);
   const [mySchedule, setMySchedule] = useState<ScheduleDay[]>(CURRENT_USER.schedule);
+  const [myGym, setMyGym] = useState(CURRENT_USER.primaryGym);
+  const [gymPickerVisible, setGymPickerVisible] = useState(false);
 
   const toggleMen = () => {
     try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
@@ -58,6 +64,11 @@ export const ProfileScreen: React.FC = () => {
     });
   };
 
+  const handleSelectNewGym = (gym: { brand: string; branchName: string; neighborhood: string }) => {
+    setMyGym(gym);
+    CURRENT_USER.primaryGym = gym;
+  };
+
   const userPhotoSrc = typeof CURRENT_USER.photos[0] === 'string' ? { uri: CURRENT_USER.photos[0] } : CURRENT_USER.photos[0];
 
   return (
@@ -67,12 +78,20 @@ export const ProfileScreen: React.FC = () => {
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {/* User Card */}
+        {/* User Profile Card */}
         <View style={styles.userCard}>
           <Image source={userPhotoSrc} style={styles.avatar} />
           <View style={styles.userInfo}>
             <Text style={styles.userName}>{CURRENT_USER.name}, {CURRENT_USER.age}</Text>
-            <Text style={styles.gymName}>📍 {CURRENT_USER.primaryGym.branchName}</Text>
+            <TouchableOpacity
+              style={styles.gymClickPill}
+              onPress={() => setGymPickerVisible(true)}
+              activeOpacity={0.7}
+            >
+              <MapPin size={12} color={COLORS.primary} style={{ marginRight: 4 }} />
+              <Text style={styles.gymClickText} numberOfLines={1}>{myGym.branchName}</Text>
+              <ChevronRight size={12} color={COLORS.primary} style={{ marginLeft: 2 }} />
+            </TouchableOpacity>
             <View style={styles.statsRow}>
               <View style={styles.statPill}>
                 <ShieldCheck size={12} color="#FBBF24" />
@@ -84,6 +103,33 @@ export const ProfileScreen: React.FC = () => {
               </View>
             </View>
           </View>
+        </View>
+
+        {/* Primary Home Gym Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderRow}>
+            <Building2 size={16} color={COLORS.primary} />
+            <Text style={styles.sectionHeading}>PRIMARY HOME GYM</Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.gymSelectorCard}
+            onPress={() => setGymPickerVisible(true)}
+            activeOpacity={0.8}
+          >
+            <View style={styles.gymIconBadge}>
+              <Building2 size={22} color={COLORS.primary} />
+            </View>
+
+            <View style={styles.gymCardContent}>
+              <Text style={styles.gymCardTitle}>{myGym.branchName}</Text>
+              <Text style={styles.gymCardSub}>{myGym.neighborhood}</Text>
+            </View>
+
+            <View style={styles.changeGymPill}>
+              <Text style={styles.changeGymText}>Change</Text>
+            </View>
+          </TouchableOpacity>
         </View>
 
         {/* Weekly Schedule Availability Matrix */}
@@ -219,6 +265,14 @@ export const ProfileScreen: React.FC = () => {
           </View>
         </View>
       </ScrollView>
+
+      {/* Change Gym Modal */}
+      <GymPickerModal
+        visible={gymPickerVisible}
+        currentGym={myGym}
+        onClose={() => setGymPickerVisible(false)}
+        onSelectGym={handleSelectNewGym}
+      />
     </SafeAreaView>
   );
 };
@@ -249,7 +303,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     borderRadius: BORDER_RADIUS.xl,
     padding: SPACING.md,
-    marginBottom: SPACING.xl,
+    marginBottom: SPACING.lg,
     borderWidth: 1,
     borderColor: COLORS.cardBorder,
   },
@@ -267,11 +321,24 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: COLORS.textPrimary,
   },
-  gymName: {
-    fontSize: 12,
-    color: COLORS.badgeGymText,
-    marginTop: 2,
+  gymClickPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: BORDER_RADIUS.full,
+    alignSelf: 'flex-start',
+    marginTop: 3,
     marginBottom: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.25)',
+  },
+  gymClickText: {
+    fontSize: 11,
+    color: COLORS.primary,
+    fontWeight: '700',
+    maxWidth: 180,
   },
   statsRow: {
     flexDirection: 'row',
@@ -305,6 +372,50 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: COLORS.textMuted,
     letterSpacing: 1,
+  },
+  gymSelectorCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.35)',
+  },
+  gymIconBadge: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  gymCardContent: {
+    flex: 1,
+  },
+  gymCardTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+  },
+  gymCardSub: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+  },
+  changeGymPill: {
+    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: BORDER_RADIUS.full,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+  },
+  changeGymText: {
+    color: COLORS.primary,
+    fontSize: 12,
+    fontWeight: '700',
   },
   settingCard: {
     flexDirection: 'row',
