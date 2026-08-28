@@ -25,6 +25,13 @@ export interface GymOption {
 
 export const POPULAR_GYMS: GymOption[] = [
   {
+    id: 'powerhouse_saddlebrook',
+    brand: 'Powerhouse Gym',
+    branchName: 'Powerhouse Gym - Saddle Brook',
+    neighborhood: 'US-46 West, Saddle Brook, NJ',
+    distanceMiles: 1.9,
+  },
+  {
     id: 'retro_garfield',
     brand: 'Retro Fitness',
     branchName: 'Retro Fitness - Garfield',
