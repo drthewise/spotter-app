@@ -106,7 +106,9 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dy > 5,
+      onStartShouldSetPanResponderCapture: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dy > 3,
+      onMoveShouldSetPanResponderCapture: (_, gestureState) => gestureState.dy > 3,
       onPanResponderMove: (_, gestureState) => {
         if (gestureState.dy > 0) {
           translateY.setValue(gestureState.dy);
