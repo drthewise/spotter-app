@@ -87,7 +87,7 @@ const BENCHMARK_PRESETS = [
   {
     category: '🏋️ Barbell Compounds',
     items: [
-      { name: 'Flat Barbell Bench', value: '225 lbs (3x8)' },
+      { name: 'Flat Barbell Bench', value: '225 lbs' },
       { name: 'Barbell Squat', value: '315 lbs' },
       { name: 'Barbell Deadlift', value: '405 lbs' },
       { name: 'Incline DB Press', value: '90 lb DBs' },
@@ -181,7 +181,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const initialBenchmarks: BenchmarkItem[] = user.strengthBenchmarks?.benchmarks && user.strengthBenchmarks.benchmarks.length > 0
     ? user.strengthBenchmarks.benchmarks
     : [
-        { id: 'b1', name: 'Barbell Hip Thrust / Bench', value: '225 lbs (3x8)' },
+        { id: 'b1', name: 'Barbell Hip Thrust / Bench', value: '225 lbs' },
         { id: 'b2', name: 'Squat / Leg Press', value: '315 lbs (3x8)' },
         { id: 'b3', name: 'Deadlift / RDL', value: '405 lbs (1RM)' },
         { id: 'b4', name: 'Dumbbell Working Weight', value: '90 lb DBs (3x8)' },
@@ -194,7 +194,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const [editingBenchmarkIdx, setEditingBenchmarkIdx] = useState<number>(0);
   const [selectedWeightNumber, setSelectedWeightNumber] = useState<number>(225);
   const [selectedUnit, setSelectedUnit] = useState<'lbs' | 'kg' | 'reps' | 's'>('lbs');
-  const [selectedScheme, setSelectedScheme] = useState<string>('(3x8)');
+  const [selectedScheme, setSelectedScheme] = useState<string>('');
 
   const setAsPrimaryPhoto = (index: number) => {
     try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch (e) {}

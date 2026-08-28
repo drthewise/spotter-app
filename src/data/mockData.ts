@@ -38,7 +38,7 @@ export const CURRENT_USER: UserProfile = {
   strengthBenchmarks: {
     category: 'Barbell Compounds',
     benchmarks: [
-      { id: 'b1', name: 'Flat Bench', value: '225 lbs (3x8)' },
+      { id: 'b1', name: 'Flat Bench', value: '225 lbs' },
       { id: 'b2', name: 'Barbell Squat', value: '315 lbs' },
       { id: 'b3', name: 'Barbell Deadlift', value: '405 lbs' },
       { id: 'b4', name: 'Incline DBs', value: '90 lb DBs' },
