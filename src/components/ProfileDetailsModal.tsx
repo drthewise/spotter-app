@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,9 @@ import {
   Image,
   Dimensions,
   SafeAreaView,
+  Animated,
+  PanResponder,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import {
   X,
@@ -54,6 +57,46 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
   const [fullscreenPhotoIdx, setFullscreenPhotoIdx] = useState(0);
 
   const lightboxScrollRef = useRef<ScrollView>(null);
+  const translateY = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (visible) {
+      translateY.setValue(0);
+    }
+  }, [visible]);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dy > 5,
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dy > 0) {
+          translateY.setValue(gestureState.dy);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy > 120 || gestureState.vy > 0.5) {
+          try {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          } catch (e) {}
+          Animated.timing(translateY, {
+            toValue: SCREEN_HEIGHT,
+            duration: 180,
+            useNativeDriver: true,
+          }).start(() => {
+            onClose();
+            translateY.setValue(0);
+          });
+        } else {
+          Animated.spring(translateY, {
+            toValue: 0,
+            bounciness: 4,
+            useNativeDriver: true,
+          }).start();
+        }
+      },
+    })
+  ).current;
 
   const isSameGym = profile.primaryGym.brand === CURRENT_USER.primaryGym.brand;
   const primaryAvatar = profile.photos[0];
@@ -81,9 +124,14 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
   return (
     <Modal visible={visible} animationType="slide" transparent={true}>
       <View style={styles.overlay}>
-        <View style={styles.sheetContainer}>
-          {/* Top Handle / Header Bar */}
-          <View style={styles.headerBar}>
+        {/* Backdrop tap to dismiss */}
+        <TouchableWithoutFeedback onPress={onClose}>
+          <View style={styles.backdropTouchArea} />
+        </TouchableWithoutFeedback>
+
+        <Animated.View style={[styles.sheetContainer, { transform: [{ translateY }] }]}>
+          {/* Top Handle / Header Bar with PanResponder for Swipe Down */}
+          <View style={styles.headerBar} {...panResponder.panHandlers}>
             <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
               <ChevronDown size={24} color={COLORS.textSecondary} />
             </TouchableOpacity>
@@ -376,7 +424,7 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
               onClose();
             }}
           />
-        </View>
+        </Animated.View>
       </View>
     </Modal>
   );
@@ -387,6 +435,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.75)',
     justifyContent: 'flex-end',
+  },
+  backdropTouchArea: {
+    ...StyleSheet.absoluteFillObject,
   },
   sheetContainer: {
     height: SCREEN_HEIGHT * 0.86,
@@ -409,10 +460,10 @@ const styles = StyleSheet.create({
     padding: 6,
   },
   dragPill: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    width: 40,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255, 255, 255, 0.35)',
   },
   headerRightActions: {
     flexDirection: 'row',
