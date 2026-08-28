@@ -59,16 +59,16 @@ const EXPERIENCE_OPTIONS: ExperienceLevel[] = [
 ];
 
 const MODALITY_OPTIONS: Modality[] = [
-  'Glute & Lower Body',
   'Bodybuilding',
-  'Powerlifting',
-  'HYROX',
-  'CrossFit',
   'Calisthenics',
-  'Olympic Lifting',
-  'Running / Cardio',
-  'Pilates & Mobility',
+  'CrossFit',
   'General Fitness',
+  'Glute & Lower Body',
+  'HYROX',
+  'Olympic Lifting',
+  'Pilates & Mobility',
+  'Powerlifting',
+  'Running / Cardio',
 ];
 
 const SPOTTING_STYLES = [
@@ -81,30 +81,12 @@ const SPOTTING_STYLES = [
 
 const BENCHMARK_PRESETS = [
   {
-    category: '🍑 Glute & Lower Body',
-    items: [
-      { name: 'Barbell Hip Thrust', value: '225 lbs (3x10)' },
-      { name: 'Barbell / DB RDL', value: '165 lbs' },
-      { name: 'Bulgarian Split Squat', value: '35 lb DBs' },
-      { name: 'Leg Press', value: '270 lbs' },
-    ],
-  },
-  {
     category: '🏋️ Barbell Compounds',
     items: [
       { name: 'Flat Barbell Bench', value: '225 lbs (3x8)' },
       { name: 'Barbell Squat', value: '315 lbs' },
       { name: 'Barbell Deadlift', value: '405 lbs' },
       { name: 'Incline DB Press', value: '90 lb DBs' },
-    ],
-  },
-  {
-    category: '⚡ HYROX & Functional',
-    items: [
-      { name: '1k Running Pace', value: '4:30/km' },
-      { name: 'Sled Push (152kg)', value: '100m in 1:45' },
-      { name: 'SkiErg 500m Split', value: '1:54/500m' },
-      { name: 'Wall Balls', value: '14 lb (40 reps)' },
     ],
   },
   {
@@ -123,6 +105,24 @@ const BENCHMARK_PRESETS = [
       { name: 'Dumbbell Chest Press', value: '30 lb DBs' },
       { name: 'Lat Pulldown', value: '90 lbs' },
       { name: 'Dumbbell RDL', value: '40 lb DBs' },
+    ],
+  },
+  {
+    category: '🍑 Glute & Lower Body',
+    items: [
+      { name: 'Barbell Hip Thrust', value: '225 lbs (3x10)' },
+      { name: 'Barbell / DB RDL', value: '165 lbs' },
+      { name: 'Bulgarian Split Squat', value: '35 lb DBs' },
+      { name: 'Leg Press', value: '270 lbs' },
+    ],
+  },
+  {
+    category: '⚡ HYROX & Functional',
+    items: [
+      { name: '1k Running Pace', value: '4:30/km' },
+      { name: 'Sled Push (152kg)', value: '100m in 1:45' },
+      { name: 'SkiErg 500m Split', value: '1:54/500m' },
+      { name: 'Wall Balls', value: '14 lb (40 reps)' },
     ],
   },
 ];
