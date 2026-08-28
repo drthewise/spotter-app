@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, Modal, Image } from 'react-native';
 import { SlidersHorizontal, Dumbbell, Sparkles, MessageCircle } from 'lucide-react-native';
 import { CardDeck } from '../components/CardDeck';
-import { FilterModal } from '../components/FilterModal';
+import { FilterModal, FilterSettings } from '../components/FilterModal';
 import { MOCK_PROFILES, CURRENT_USER } from '../data/mockData';
 import { UserProfile } from '../types';
 import { COLORS, BORDER_RADIUS, SPACING } from '../constants/theme';
@@ -14,6 +14,15 @@ interface DiscoveryScreenProps {
 export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({ onNavigateToChat }) => {
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [matchedProfile, setMatchedProfile] = useState<UserProfile | null>(null);
+
+  const [filters, setFilters] = useState<FilterSettings>({
+    sameGymOnly: false,
+    showMen: true,
+    showWomen: true,
+    maxDistance: 50,
+    experienceLevel: 'All',
+    modality: 'All',
+  });
 
   const handleSwipeLeft = (profile: UserProfile) => {
     console.log('Passed on:', profile.name);
@@ -30,6 +39,27 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({ onNavigateToCh
     console.log('Super-Spot sent to:', profile.name, details);
     setMatchedProfile(profile);
   };
+
+  // Filter profiles based on selected gender checkboxes and preferences
+  const displayedProfiles = MOCK_PROFILES.filter((profile) => {
+    // Gender filter
+    if (profile.gender === 'male' && !filters.showMen) return false;
+    if (profile.gender === 'female' && !filters.showWomen) return false;
+
+    // Same gym filter
+    if (filters.sameGymOnly && profile.primaryGym.brand !== CURRENT_USER.primaryGym.brand) return false;
+
+    // Distance filter
+    if (profile.distanceMiles > filters.maxDistance) return false;
+
+    // Experience level filter
+    if (filters.experienceLevel !== 'All' && profile.experienceLevel !== filters.experienceLevel) return false;
+
+    // Modality filter
+    if (filters.modality !== 'All' && !profile.primaryModalities.includes(filters.modality as any)) return false;
+
+    return true;
+  });
 
   const myPhotoSrc = typeof CURRENT_USER.photos[0] === 'string' ? { uri: CURRENT_USER.photos[0] } : CURRENT_USER.photos[0];
   const partnerPhotoSrc = matchedProfile ? (typeof matchedProfile.photos[0] === 'string' ? { uri: matchedProfile.photos[0] } : matchedProfile.photos[0]) : null;
@@ -60,7 +90,8 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({ onNavigateToCh
       </View>
 
       <CardDeck
-        profiles={MOCK_PROFILES}
+        key={JSON.stringify(filters)}
+        profiles={displayedProfiles}
         onSwipeLeft={handleSwipeLeft}
         onSwipeRight={handleSwipeRight}
         onSuperSpot={handleSuperSpot}
@@ -69,8 +100,9 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({ onNavigateToCh
 
       <FilterModal
         visible={filterModalVisible}
+        currentFilters={filters}
         onClose={() => setFilterModalVisible(false)}
-        onApply={(filters) => console.log('Applied filters:', filters)}
+        onApply={(newFilters) => setFilters(newFilters)}
       />
 
       <Modal visible={!!matchedProfile} transparent animationType="fade">

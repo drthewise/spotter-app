@@ -14,7 +14,10 @@ import {
   Clock,
   Dumbbell,
   ShieldCheck,
+  Check,
+  Users,
 } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
 import { CURRENT_USER } from '../data/mockData';
 import { ScheduleMatrix } from '../components/ScheduleMatrix';
 import { COLORS, BORDER_RADIUS, SPACING } from '../constants/theme';
@@ -22,10 +25,23 @@ import { ScheduleDay, TimeSlot } from '../types';
 
 export const ProfileScreen: React.FC = () => {
   const [ghostMode, setGhostMode] = useState(CURRENT_USER.privacy.ghostMode);
-  const [womenOnly, setWomenOnly] = useState(CURRENT_USER.privacy.womenOnlyMode);
+  const [showMen, setShowMen] = useState(true);
+  const [showWomen, setShowWomen] = useState(true);
   const [distanceFuzzing, setDistanceFuzzing] = useState(CURRENT_USER.privacy.distanceFuzzing);
   const [gymTier, setGymTier] = useState(CURRENT_USER.privacy.gymVisibility);
   const [mySchedule, setMySchedule] = useState<ScheduleDay[]>(CURRENT_USER.schedule);
+
+  const toggleMen = () => {
+    try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
+    if (showMen && !showWomen) setShowWomen(true);
+    setShowMen(!showMen);
+  };
+
+  const toggleWomen = () => {
+    try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
+    if (showWomen && !showMen) setShowMen(true);
+    setShowWomen(!showWomen);
+  };
 
   const handleToggleSlot = (day: 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat' | 'Sun', slotId: TimeSlot) => {
     setMySchedule((prev) => {
@@ -51,6 +67,7 @@ export const ProfileScreen: React.FC = () => {
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {/* User Card */}
         <View style={styles.userCard}>
           <Image source={userPhotoSrc} style={styles.avatar} />
           <View style={styles.userInfo}>
@@ -82,6 +99,64 @@ export const ProfileScreen: React.FC = () => {
           />
         </View>
 
+        {/* Training Partner Gender Preference Filter */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderRow}>
+            <Users size={16} color={COLORS.primary} />
+            <Text style={styles.sectionHeading}>TRAINING PARTNER PREFERENCES</Text>
+          </View>
+
+          <View style={styles.settingCard}>
+            <View style={styles.settingTextCol}>
+              <Text style={styles.settingTitle}>I'm Looking to Train With</Text>
+              <Text style={styles.settingDesc}>
+                Select the lifters you want to discover in your feed:
+              </Text>
+              <View style={styles.genderCheckboxRow}>
+                {/* Men Checkbox */}
+                <TouchableOpacity
+                  style={[styles.genderCheckbox, showMen && styles.genderCheckboxActive]}
+                  onPress={toggleMen}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.checkCircle, showMen && styles.checkCircleActive]}>
+                    {showMen && <Check size={12} color="#FFFFFF" strokeWidth={3} />}
+                  </View>
+                  <Text style={[styles.genderText, showMen && styles.genderTextActive]}>Men Only</Text>
+                </TouchableOpacity>
+
+                {/* Women Checkbox */}
+                <TouchableOpacity
+                  style={[styles.genderCheckbox, showWomen && styles.genderCheckboxActive]}
+                  onPress={toggleWomen}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.checkCircle, showWomen && styles.checkCircleActive]}>
+                    {showWomen && <Check size={12} color="#FFFFFF" strokeWidth={3} />}
+                  </View>
+                  <Text style={[styles.genderText, showWomen && styles.genderTextActive]}>Women Only</Text>
+                </TouchableOpacity>
+
+                {/* Everyone Checkbox */}
+                <TouchableOpacity
+                  style={[styles.genderCheckbox, showMen && showWomen && styles.genderCheckboxActive]}
+                  onPress={() => {
+                    try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
+                    setShowMen(true);
+                    setShowWomen(true);
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.checkCircle, showMen && showWomen && styles.checkCircleActive]}>
+                    {showMen && showWomen && <Check size={12} color="#FFFFFF" strokeWidth={3} />}
+                  </View>
+                  <Text style={[styles.genderText, showMen && showWomen && styles.genderTextActive]}>Everyone</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </View>
+
         {/* Privacy & Anti-Doxxing Controls */}
         <View style={styles.section}>
           <View style={styles.sectionHeaderRow}>
@@ -99,21 +174,6 @@ export const ProfileScreen: React.FC = () => {
             <Switch
               value={ghostMode}
               onValueChange={setGhostMode}
-              trackColor={{ false: '#334155', true: COLORS.primary }}
-              thumbColor="#FFFFFF"
-            />
-          </View>
-
-          <View style={styles.settingCard}>
-            <View style={styles.settingTextCol}>
-              <Text style={styles.settingTitle}>Women-Only Discovery Mode</Text>
-              <Text style={styles.settingDesc}>
-                Only discover and be visible to verified female workout partners.
-              </Text>
-            </View>
-            <Switch
-              value={womenOnly}
-              onValueChange={setWomenOnly}
               trackColor={{ false: '#334155', true: COLORS.primary }}
               thumbColor="#FFFFFF"
             />
@@ -259,7 +319,6 @@ const styles = StyleSheet.create({
   },
   settingTextCol: {
     flex: 1,
-    marginRight: 10,
   },
   settingTitle: {
     fontSize: 14,
@@ -270,7 +329,52 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: COLORS.textSecondary,
     marginTop: 3,
+    marginBottom: 8,
     lineHeight: 16,
+  },
+  genderCheckboxRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 4,
+  },
+  genderCheckbox: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    paddingVertical: 10,
+    paddingHorizontal: 6,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  genderCheckboxActive: {
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    borderColor: COLORS.primary,
+  },
+  checkCircle: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 1.5,
+    borderColor: COLORS.textMuted,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 6,
+  },
+  checkCircleActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  genderText: {
+    color: COLORS.textSecondary,
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  genderTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
   tierPillsRow: {
     flexDirection: 'row',
