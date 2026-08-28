@@ -12,6 +12,7 @@ import {
   Platform,
   Image,
   Alert,
+  Switch,
 } from 'react-native';
 import {
   X,
@@ -31,6 +32,7 @@ import * as Haptics from 'expo-haptics';
 import { COLORS, BORDER_RADIUS, SPACING } from '../constants/theme';
 import { UserProfile, ExperienceLevel, Modality, WorkoutSplit, BenchmarkItem } from '../types';
 import { PROFILE_IMAGES } from '../constants/images';
+import { CoachVerificationModal } from './CoachVerificationModal';
 
 interface EditProfileModalProps {
   visible: boolean;
@@ -129,6 +131,25 @@ const BENCHMARK_PRESETS = [
   },
 ];
 
+const QUICK_WEIGHT_PRESETS = [
+  { label: '45 lbs (Bar)', val: 45 },
+  { label: '95 lbs', val: 95 },
+  { label: '135 lbs (1 Plate)', val: 135 },
+  { label: '185 lbs', val: 185 },
+  { label: '225 lbs (2 Plates)', val: 225 },
+  { label: '275 lbs', val: 275 },
+  { label: '315 lbs (3 Plates)', val: 315 },
+  { label: '365 lbs', val: 365 },
+  { label: '405 lbs (4 Plates)', val: 405 },
+  { label: '495 lbs (5 Plates)', val: 495 },
+  { label: '585 lbs (6 Plates)', val: 585 },
+];
+
+const WEIGHT_NUMBERS: number[] = [];
+for (let w = 5; w <= 650; w += 5) {
+  WEIGHT_NUMBERS.push(w);
+}
+
 export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   visible,
   user,
@@ -144,14 +165,26 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const [spottingStyle, setSpottingStyle] = useState(user.spottingStyle);
   const [gymEnergy, setGymEnergy] = useState(user.gymEnergy);
   
+  // Cadence State
+  const [cadence, setCadence] = useState<string>(user.partnershipCadence || 'Consistent Weekly Partner (3-4x/week)');
+  const [cadenceCommitmentText, setCadenceCommitmentText] = useState<string>(user.cadenceCommitment || 'Mon / Wed / Fri @ 6:30 AM');
+
+  // Coach State
+  const [isCoach, setIsCoach] = useState<boolean>(user.isCoach ?? false);
+  const [coachModeActive, setCoachModeActive] = useState<boolean>(user.coachModeEnabled ?? true);
+  const [verificationStatus, setVerificationStatus] = useState<string>(user.coachVerificationStatus || 'none');
+  const [verificationModalVisible, setVerificationModalVisible] = useState(false);
+  const [coachTitle, setCoachTitle] = useState<string>(user.coachTitle ?? '');
+  const [hourlyRate, setHourlyRate] = useState<string>(user.hourlyRate ?? '');
+
   // Custom Benchmarks
   const initialBenchmarks: BenchmarkItem[] = user.strengthBenchmarks?.benchmarks && user.strengthBenchmarks.benchmarks.length > 0
     ? user.strengthBenchmarks.benchmarks
     : [
-        { id: 'b1', name: 'Barbell Hip Thrust / Bench', value: '225 lbs' },
-        { id: 'b2', name: 'Squat / Leg Press', value: '315 lbs' },
-        { id: 'b3', name: 'Deadlift / RDL', value: '365 lbs' },
-        { id: 'b4', name: 'Dumbbell Working Weight', value: '50 lb DBs' },
+        { id: 'b1', name: 'Barbell Hip Thrust / Bench', value: '225 lbs (3x8)' },
+        { id: 'b2', name: 'Squat / Leg Press', value: '315 lbs (3x8)' },
+        { id: 'b3', name: 'Deadlift / RDL', value: '405 lbs (1RM)' },
+        { id: 'b4', name: 'Dumbbell Working Weight', value: '90 lb DBs (3x8)' },
       ];
 
   const [benchmarks, setBenchmarks] = useState<BenchmarkItem[]>(initialBenchmarks);
@@ -162,7 +195,6 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const [selectedWeightNumber, setSelectedWeightNumber] = useState<number>(225);
   const [selectedUnit, setSelectedUnit] = useState<'lbs' | 'kg' | 'reps' | 's'>('lbs');
   const [selectedScheme, setSelectedScheme] = useState<string>('(3x8)');
-
 
   const setAsPrimaryPhoto = (index: number) => {
     try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch (e) {}
@@ -184,15 +216,8 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
     setPhotos(newPhotos);
   };
 
-  const addPresetPhoto = (imageSrc: any) => {
-    try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch (e) {}
-    setPhotos((prev) => [...prev, imageSrc]);
-    setPhotoPickerVisible(false);
-  };
-
   const setPrimaryFromPicker = (imageSrc: any) => {
     try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch (e) {}
-    // If photo is already in list, move to front. Otherwise prepend.
     const existingIdx = photos.findIndex((p) => p === imageSrc);
     if (existingIdx >= 0) {
       setAsPrimaryPhoto(existingIdx);
@@ -201,7 +226,6 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
     }
     setPhotoPickerVisible(false);
   };
-
 
   const applyPreset = (preset: typeof BENCHMARK_PRESETS[0]) => {
     try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch (e) {}
@@ -213,11 +237,10 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
     setBenchmarks(newItems);
   };
 
-    const openWeightDialer = (idx: number, item: BenchmarkItem) => {
+  const openWeightDialer = (idx: number, item: BenchmarkItem) => {
     try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
     setEditingBenchmarkIdx(idx);
 
-    // Parse existing number if present
     const matchNum = item.value.match(/\d+/);
     if (matchNum) {
       setSelectedWeightNumber(parseInt(matchNum[0], 10));
@@ -257,34 +280,9 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
     setDialerVisible(false);
   };
 
-  const QUICK_WEIGHT_PRESETS = [
-    { label: '45 lbs (Bar)', val: 45 },
-    { label: '95 lbs', val: 95 },
-    { label: '135 lbs (1 Plate)', val: 135 },
-    { label: '185 lbs', val: 185 },
-    { label: '225 lbs (2 Plates)', val: 225 },
-    { label: '275 lbs', val: 275 },
-    { label: '315 lbs (3 Plates)', val: 315 },
-    { label: '365 lbs', val: 365 },
-    { label: '405 lbs (4 Plates)', val: 405 },
-    { label: '495 lbs (5 Plates)', val: 495 },
-    { label: '585 lbs (6 Plates)', val: 585 },
-  ];
-
-  const WEIGHT_NUMBERS: number[] = [];
-  for (let w = 5; w <= 650; w += 5) {
-    WEIGHT_NUMBERS.push(w);
-  }
-
   const updateBenchmarkName = (idx: number, name: string) => {
     const updated = [...benchmarks];
     updated[idx].name = name;
-    setBenchmarks(updated);
-  };
-
-  const updateBenchmarkVal = (idx: number, value: string) => {
-    const updated = [...benchmarks];
-    updated[idx].value = value;
     setBenchmarks(updated);
   };
 
@@ -302,10 +300,18 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const handleSave = () => {
     try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch (e) {}
     onSave({
+      photos,
       bio,
       workoutSplit,
       experienceLevel,
       primaryModalities,
+      partnershipCadence: cadence as any,
+      cadenceCommitment: cadenceCommitmentText.trim(),
+      isCoach,
+      coachModeEnabled: coachModeActive,
+      coachVerificationStatus: verificationStatus as any,
+      coachTitle: coachTitle.trim(),
+      hourlyRate: hourlyRate.trim(),
       spottingStyle,
       gymEnergy,
       strengthBenchmarks: {
@@ -314,8 +320,6 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
     });
     onClose();
   };
-
-  const userPhotoSrc = typeof user.photos[0] === 'string' ? { uri: user.photos[0] } : user.photos[0];
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
@@ -379,12 +383,10 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                     <View key={idx} style={[styles.galleryCard, isPrimary && styles.galleryCardPrimary]}>
                       <Image source={src} style={styles.galleryImage} />
                       
-                      {/* Primary / Index Badge */}
                       <View style={[styles.photoTag, isPrimary && styles.photoTagPrimary]}>
                         <Text style={styles.photoTagText}>{isPrimary ? '★ Primary' : `#${idx + 1}`}</Text>
                       </View>
 
-                      {/* Card Action Controls */}
                       <View style={styles.cardActionsOverlay}>
                         {!isPrimary && (
                           <TouchableOpacity
@@ -409,7 +411,6 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                   );
                 })}
 
-                {/* Add Photo Card */}
                 <TouchableOpacity
                   style={styles.addPhotoCard}
                   onPress={() => setPhotoPickerVisible(true)}
@@ -457,7 +458,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
               })}
             </View>
 
-            {/* Working Weights & Benchmarks */}
+            {/* Working Weights & Benchmarks with Scrollable Weight Dialer */}
             <Text style={styles.sectionHeader}>TRAINING BENCHMARKS & WORKING STATS</Text>
             
             {/* Preset Picker */}
@@ -486,12 +487,12 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                   <TouchableOpacity
                     style={styles.benchmarkSelectorBtn}
                     onPress={() => openWeightDialer(idx, item)}
-                    activeOpacity={0.8}
+                    activeOpacity={0.75}
                   >
                     <Text style={styles.benchmarkSelectorVal} numberOfLines={1}>
                       {item.value || 'Set Weight'}
                     </Text>
-                    <ChevronDown size={13} color={COLORS.primary} style={{ marginLeft: 4 }} />
+                    <ChevronDown size={14} color={COLORS.primary} style={{ marginLeft: 4 }} />
                   </TouchableOpacity>
                 </View>
               ))}
@@ -517,6 +518,140 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                   </TouchableOpacity>
                 );
               })}
+            </View>
+
+            {/* Partnership Cadence & Availability */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>PARTNERSHIP CADENCE COMMITMENT</Text>
+              <View style={styles.optionWrap}>
+                {[
+                  'Consistent Weekly Partner (3-4x/week)',
+                  'Weekly Anchor Partner (1-2x/week)',
+                  'Drop-In / As-Needed Spots',
+                  'Flexible / Open to Both',
+                ].map((c) => (
+                  <TouchableOpacity
+                    key={c}
+                    style={[styles.optionPill, cadence === c && styles.optionPillActive]}
+                    onPress={() => {
+                      try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
+                      setCadence(c);
+                    }}
+                  >
+                    <Text style={[styles.optionPillText, cadence === c && styles.optionPillTextActive]}>
+                      {c}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <Text style={[styles.subLabel, { marginTop: 10 }]}>STANDING DAYS & TIME COMMITMENT</Text>
+              <TextInput
+                style={styles.singleLineInput}
+                value={cadenceCommitmentText}
+                onChangeText={setCadenceCommitmentText}
+                placeholder="e.g. Mon / Wed / Fri @ 6:30 AM"
+                placeholderTextColor={COLORS.textMuted}
+              />
+            </View>
+
+            {/* Certified Coach & Trainer Toggle */}
+            <View style={styles.section}>
+              <View style={styles.toggleCard}>
+                <View style={styles.toggleTextCol}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Text style={styles.toggleTitle}>Certified Coach / Personal Trainer</Text>
+                    <View style={styles.coachBadgeSmall}>
+                      <Text style={styles.coachBadgeSmallText}>PRO</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.toggleSub}>Display verified coaching credentials and form check clinics</Text>
+                </View>
+                <Switch
+                  value={isCoach}
+                  onValueChange={(val) => {
+                    try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch (e) {}
+                    setIsCoach(val);
+                  }}
+                  trackColor={{ false: '#334155', true: '#F59E0B' }}
+                  thumbColor="#FFFFFF"
+                />
+              </View>
+
+              {isCoach && (
+                <View style={styles.coachFormBox}>
+                  {/* Coach Mode Active / Paused Switch */}
+                  <View style={styles.coachModeToggleRow}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.coachModeTitle}>
+                        {coachModeActive ? '🟢 Coach Mode: ACTIVE' : '⚪ Coach Mode: PAUSED'}
+                      </Text>
+                      <Text style={styles.coachModeSub}>
+                        {coachModeActive ? 'Showing verified badge & taking client inquiries' : 'Browsing as regular lifter for personal workouts'}
+                      </Text>
+                    </View>
+                    <Switch
+                      value={coachModeActive}
+                      onValueChange={(val) => {
+                        try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch (e) {}
+                        setCoachModeActive(val);
+                      }}
+                      trackColor={{ false: '#334155', true: '#F59E0B' }}
+                      thumbColor="#FFFFFF"
+                    />
+                  </View>
+
+                  {/* Verification Status Banner */}
+                  <View style={styles.verificationStatusBanner}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                      <Text style={styles.verificationStatusLabel}>CREDENTIAL STATUS</Text>
+                      <View style={[
+                        styles.statusTag,
+                        verificationStatus === 'verified' && styles.statusTagVerified,
+                        verificationStatus === 'pending' && styles.statusTagPending,
+                      ]}>
+                        <Text style={[
+                          styles.statusTagText,
+                          verificationStatus === 'verified' && styles.statusTagTextVerified,
+                          verificationStatus === 'pending' && styles.statusTagTextPending,
+                        ]}>
+                          {verificationStatus === 'verified' ? '🛡️ Verified Active' : verificationStatus === 'pending' ? '⏳ Under Review' : '⚠️ Unverified'}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {verificationStatus !== 'verified' && (
+                      <TouchableOpacity
+                        style={styles.submitDocBtn}
+                        onPress={() => setVerificationModalVisible(true)}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={styles.submitDocBtnText}>
+                          {verificationStatus === 'pending' ? 'Update Uploaded Documents' : '📜 Submit Credentials & Certs'}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+
+                  <Text style={[styles.subLabel, { marginTop: 10 }]}>COACH TITLE & SPECIALTIES</Text>
+                  <TextInput
+                    style={styles.singleLineInput}
+                    value={coachTitle}
+                    onChangeText={setCoachTitle}
+                    placeholder="e.g. CSCS Strength Coach & Barbell Specialist"
+                    placeholderTextColor={COLORS.textMuted}
+                  />
+
+                  <Text style={[styles.subLabel, { marginTop: 10 }]}>RATES & CLINIC OFFERINGS</Text>
+                  <TextInput
+                    style={styles.singleLineInput}
+                    value={hourlyRate}
+                    onChangeText={setHourlyRate}
+                    placeholder="e.g. $45 / 30-min Form Check or Free Spot"
+                    placeholderTextColor={COLORS.textMuted}
+                  />
+                </View>
+              )}
             </View>
 
             {/* Training Modalities */}
@@ -579,12 +714,467 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
             </TouchableOpacity>
           </ScrollView>
         </KeyboardAvoidingView>
+
+        {/* 1. Scrollable Number & Weight Selector Dial Modal */}
+        <Modal visible={dialerVisible} transparent animationType="slide">
+          <View style={styles.dialerOverlay}>
+            <TouchableOpacity
+              style={styles.dialerBackdropTouch}
+              onPress={() => setDialerVisible(false)}
+              activeOpacity={1}
+            />
+            <View style={styles.dialerSheet}>
+              <View style={styles.dialerDragPill} />
+              <View style={styles.dialerHeader}>
+                <View>
+                  <Text style={styles.dialerTitle}>Select Working Weight & Reps</Text>
+                  <Text style={styles.dialerSub}>
+                    {benchmarks[editingBenchmarkIdx]?.name || 'Lift Benchmark'}
+                  </Text>
+                </View>
+                <TouchableOpacity onPress={() => setDialerVisible(false)} style={styles.dialerCloseBtn}>
+                  <X size={20} color={COLORS.textSecondary} />
+                </TouchableOpacity>
+              </View>
+
+              {/* Big Formatted Display */}
+              <View style={styles.dialerDisplayCard}>
+                <Text style={styles.dialerDisplayValue}>
+                  {selectedUnit === 'reps'
+                    ? `${selectedWeightNumber} reps`
+                    : selectedUnit === 's'
+                    ? `${selectedWeightNumber}s hold`
+                    : `${selectedWeightNumber} ${selectedUnit} ${selectedScheme}`.trim()}
+                </Text>
+                <Text style={styles.dialerDisplaySub}>Live Benchmark Preview</Text>
+              </View>
+
+              {/* Unit Selector: lbs vs kg vs reps vs sec */}
+              <View style={styles.unitSelectorRow}>
+                {(['lbs', 'kg', 'reps', 's'] as const).map((unit) => (
+                  <TouchableOpacity
+                    key={unit}
+                    style={[styles.unitBtn, selectedUnit === unit && styles.unitBtnActive]}
+                    onPress={() => {
+                      try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
+                      setSelectedUnit(unit);
+                    }}
+                  >
+                    <Text style={[styles.unitBtnText, selectedUnit === unit && styles.unitBtnTextActive]}>
+                      {unit.toUpperCase()}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* Scrollable Horizontal Number Wheel / Ruler */}
+              <Text style={styles.dialerSectionLabel}>SCROLL TO SELECT WEIGHT / REPS</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.numberWheelContent}
+              >
+                {WEIGHT_NUMBERS.map((num) => {
+                  const isSelected = selectedWeightNumber === num;
+                  return (
+                    <TouchableOpacity
+                      key={num}
+                      style={[styles.numberCell, isSelected && styles.numberCellSelected]}
+                      onPress={() => {
+                        try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
+                        setSelectedWeightNumber(num);
+                      }}
+                    >
+                      <Text style={[styles.numberCellText, isSelected && styles.numberCellTextSelected]}>
+                        {num}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+
+              {/* Quick Jump Barbell Presets */}
+              <Text style={styles.dialerSectionLabel}>POPULAR BARBELL & DB PRESETS</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.presetJumpRow}>
+                {QUICK_WEIGHT_PRESETS.map((p) => (
+                  <TouchableOpacity
+                    key={p.label}
+                    style={[styles.presetJumpBtn, selectedWeightNumber === p.val && styles.presetJumpBtnActive]}
+                    onPress={() => {
+                      try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
+                      setSelectedWeightNumber(p.val);
+                    }}
+                  >
+                    <Text style={[styles.presetJumpText, selectedWeightNumber === p.val && styles.presetJumpTextActive]}>
+                      {p.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
+              {/* Working Scheme (3x8, 5x5, 1RM, 3x10) */}
+              {selectedUnit !== 'reps' && selectedUnit !== 's' && (
+                <>
+                  <Text style={styles.dialerSectionLabel}>SET & REP SCHEME</Text>
+                  <View style={styles.schemeRow}>
+                    {['(3x8)', '(3x10)', '(5x5)', '(1RM)', '(3x12)', ''].map((scheme) => (
+                      <TouchableOpacity
+                        key={scheme || 'None'}
+                        style={[styles.schemeBtn, selectedScheme === scheme && styles.schemeBtnActive]}
+                        onPress={() => {
+                          try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
+                          setSelectedScheme(scheme);
+                        }}
+                      >
+                        <Text style={[styles.schemeBtnText, selectedScheme === scheme && styles.schemeBtnTextActive]}>
+                          {scheme || 'Weight Only'}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </>
+              )}
+
+              {/* Apply Button */}
+              <TouchableOpacity style={styles.applyWeightBtn} onPress={applyWeightFromDialer}>
+                <Check size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
+                <Text style={styles.applyWeightBtnText}>Apply to {benchmarks[editingBenchmarkIdx]?.name || 'Lift'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+        {/* 2. Interactive Photo Selection & Preset Library Modal */}
+        <Modal visible={photoPickerVisible} transparent animationType="slide">
+          <View style={styles.pickerOverlay}>
+            <TouchableOpacity
+              style={styles.pickerBackdropTouch}
+              onPress={() => setPhotoPickerVisible(false)}
+              activeOpacity={1}
+            />
+            <View style={styles.pickerSheet}>
+              <View style={styles.pickerDragPill} />
+              <View style={styles.pickerHeader}>
+                <View>
+                  <Text style={styles.pickerTitle}>Choose Profile & Fit Check Photos</Text>
+                  <Text style={styles.pickerSub}>Select from gym presets or tap to set as primary</Text>
+                </View>
+                <TouchableOpacity onPress={() => setPhotoPickerVisible(false)} style={styles.pickerCloseBtn}>
+                  <X size={20} color={COLORS.textSecondary} />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.pickerGrid}>
+                {Object.entries(PROFILE_IMAGES).map(([key, img]) => (
+                  <TouchableOpacity
+                    key={key}
+                    style={styles.pickerGridItem}
+                    onPress={() => setPrimaryFromPicker(img)}
+                    activeOpacity={0.85}
+                  >
+                    <Image source={img} style={styles.pickerGridImg} />
+                    <View style={styles.pickerSelectOverlay}>
+                      <Text style={styles.pickerSelectText}>Select</Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
+
+        {/* 3. Coach Documentation Submission Modal */}
+        <CoachVerificationModal
+          visible={verificationModalVisible}
+          onClose={() => setVerificationModalVisible(false)}
+          onSubmitted={(data) => {
+            setVerificationStatus('pending');
+            try { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch (e) {}
+          }}
+        />
       </SafeAreaView>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#0B0D14',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  cancelBtn: {
+    padding: 6,
+  },
+  cancelText: {
+    color: COLORS.textSecondary,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  title: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: COLORS.textPrimary,
+  },
+  saveBtn: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: BORDER_RADIUS.md,
+  },
+  saveText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  content: {
+    padding: SPACING.lg,
+    paddingBottom: 40,
+  },
+  avatarSection: {
+    alignItems: 'center',
+    marginBottom: SPACING.lg,
+  },
+  avatarTouchWrapper: {
+    position: 'relative',
+  },
+  avatar: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    borderWidth: 2,
+    borderColor: COLORS.primary,
+  },
+  avatarCameraBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: COLORS.primary,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#11141F',
+  },
+  changePhotoPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: BORDER_RADIUS.full,
+    marginTop: 10,
+  },
+  changePhotoText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  section: {
+    marginBottom: SPACING.lg,
+  },
+  sectionHeader: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: COLORS.textMuted,
+    letterSpacing: 1,
+    marginBottom: SPACING.xs + 2,
+    marginTop: SPACING.xs,
+  },
+  photoSectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
+  },
+  addPhotoText: {
+    color: COLORS.primary,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  galleryRow: {
+    gap: 12,
+    paddingVertical: 4,
+  },
+  galleryCard: {
+    width: 120,
+    height: 165,
+    borderRadius: BORDER_RADIUS.md,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    position: 'relative',
+  },
+  galleryCardPrimary: {
+    borderColor: COLORS.primary,
+    borderWidth: 2,
+  },
+  galleryImage: {
+    width: '100%',
+    height: '100%',
+  },
+  photoTag: {
+    position: 'absolute',
+    top: 6,
+    left: 6,
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  photoTagPrimary: {
+    backgroundColor: COLORS.primary,
+  },
+  photoTagText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '800',
+  },
+  cardActionsOverlay: {
+    position: 'absolute',
+    bottom: 6,
+    left: 6,
+    right: 6,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  setPrimaryBtn: {
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  setPrimaryBtnText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '700',
+  },
+  deletePhotoBtn: {
+    backgroundColor: 'rgba(239, 68, 68, 0.8)',
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addPhotoCard: {
+    width: 110,
+    height: 165,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: 'rgba(16, 185, 129, 0.4)',
+    backgroundColor: 'rgba(16, 185, 129, 0.05)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: SPACING.sm,
+  },
+  addPhotoIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  addPhotoCardText: {
+    color: COLORS.primary,
+    fontSize: 11,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  bioInput: {
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.md,
+    color: COLORS.textPrimary,
+    fontSize: 13,
+    lineHeight: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    marginBottom: SPACING.lg,
+    minHeight: 70,
+  },
+  pillsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: SPACING.lg,
+  },
+  pill: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: BORDER_RADIUS.full,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  pillActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  pillText: {
+    color: COLORS.textSecondary,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  pillTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  presetScroll: {
+    gap: 8,
+    marginBottom: SPACING.sm,
+    paddingVertical: 2,
+  },
+  presetBtn: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  presetBtnText: {
+    color: COLORS.textSecondary,
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  benchmarksContainer: {
+    gap: 8,
+    marginBottom: SPACING.lg,
+  },
+  benchmarkCard: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+  },
+  benchmarkNameInput: {
+    flex: 1.2,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderRadius: BORDER_RADIUS.md,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: 12,
+    color: COLORS.textPrimary,
+    fontSize: 13,
+    fontWeight: '600',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+  },
   benchmarkSelectorBtn: {
     flex: 1,
     flexDirection: 'row',
@@ -602,6 +1192,240 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     flex: 1,
+  },
+  sectionTitle: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: COLORS.textMuted,
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
+  optionWrap: {
+    gap: 6,
+    marginBottom: SPACING.sm,
+  },
+  optionPill: {
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  optionPillActive: {
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    borderColor: COLORS.primary,
+  },
+  optionPillText: {
+    color: COLORS.textSecondary,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  optionPillTextActive: {
+    color: '#34D399',
+    fontWeight: '700',
+  },
+  subLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: COLORS.textMuted,
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  singleLineInput: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: BORDER_RADIUS.md,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: 10,
+    color: COLORS.textPrimary,
+    fontSize: 13,
+    fontWeight: '600',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  toggleCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  toggleTextCol: {
+    flex: 1,
+    marginRight: 10,
+  },
+  toggleTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+  },
+  toggleSub: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+  },
+  coachBadgeSmall: {
+    backgroundColor: '#F59E0B',
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 3,
+    marginLeft: 6,
+  },
+  coachBadgeSmallText: {
+    color: '#000000',
+    fontSize: 9,
+    fontWeight: '900',
+  },
+  coachFormBox: {
+    backgroundColor: 'rgba(245, 158, 11, 0.06)',
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.2)',
+    marginTop: 8,
+  },
+  coachModeToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    marginBottom: SPACING.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  coachModeTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  coachModeSub: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+  },
+  verificationStatusBanner: {
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    marginBottom: SPACING.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  verificationStatusLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: COLORS.textMuted,
+    letterSpacing: 0.5,
+  },
+  statusTag: {
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: BORDER_RADIUS.full,
+  },
+  statusTagPending: {
+    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+  },
+  statusTagVerified: {
+    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+  },
+  statusTagText: {
+    color: '#F87171',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  statusTagTextPending: {
+    color: '#FBBF24',
+  },
+  statusTagTextVerified: {
+    color: '#34D399',
+  },
+  submitDocBtn: {
+    backgroundColor: '#F59E0B',
+    paddingVertical: 10,
+    borderRadius: BORDER_RADIUS.md,
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  submitDocBtnText: {
+    color: '#000000',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  optionsList: {
+    gap: 8,
+    marginBottom: SPACING.lg,
+  },
+  optionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  optionCardActive: {
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    borderColor: COLORS.primary,
+  },
+  optionText: {
+    color: COLORS.textPrimary,
+    fontSize: 13,
+    fontWeight: '600',
+    flex: 1,
+  },
+  optionTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  radioCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: COLORS.textMuted,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 10,
+  },
+  radioCircleActive: {
+    borderColor: COLORS.primary,
+  },
+  radioDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: COLORS.primary,
+  },
+  singleInput: {
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderRadius: BORDER_RADIUS.lg,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: 12,
+    color: COLORS.textPrimary,
+    fontSize: 13,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    marginBottom: SPACING.xl,
+  },
+  bottomSaveBtn: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: 15,
+    borderRadius: BORDER_RADIUS.lg,
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  bottomSaveText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '800',
   },
   dialerOverlay: {
     flex: 1,
@@ -801,131 +1625,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '800',
   },
-  section: {
-    marginBottom: SPACING.lg,
-  },
-  avatarTouchWrapper: {
-    position: 'relative',
-  },
-  avatarCameraBadge: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: COLORS.primary,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#11141F',
-  },
-  photoSectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: SPACING.sm,
-  },
-  addPhotoText: {
-    color: COLORS.primary,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  galleryRow: {
-    gap: 12,
-    paddingVertical: 4,
-  },
-  galleryCard: {
-    width: 120,
-    height: 165,
-    borderRadius: BORDER_RADIUS.md,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    position: 'relative',
-  },
-  galleryCardPrimary: {
-    borderColor: COLORS.primary,
-    borderWidth: 2,
-  },
-  galleryImage: {
-    width: '100%',
-    height: '100%',
-  },
-  photoTag: {
-    position: 'absolute',
-    top: 6,
-    left: 6,
-    backgroundColor: 'rgba(0, 0, 0, 0.65)',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  photoTagPrimary: {
-    backgroundColor: COLORS.primary,
-  },
-  photoTagText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: '800',
-  },
-  cardActionsOverlay: {
-    position: 'absolute',
-    bottom: 6,
-    left: 6,
-    right: 6,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  setPrimaryBtn: {
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  setPrimaryBtnText: {
-    color: '#FFFFFF',
-    fontSize: 9,
-    fontWeight: '700',
-  },
-  deletePhotoBtn: {
-    backgroundColor: 'rgba(239, 68, 68, 0.8)',
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  addPhotoCard: {
-    width: 110,
-    height: 165,
-    borderRadius: BORDER_RADIUS.md,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    borderColor: 'rgba(16, 185, 129, 0.4)',
-    backgroundColor: 'rgba(16, 185, 129, 0.05)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: SPACING.sm,
-  },
-  addPhotoIconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  addPhotoCardText: {
-    color: COLORS.primary,
-    fontSize: 11,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
   pickerOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.75)',
@@ -1003,343 +1702,6 @@ const styles = StyleSheet.create({
   pickerSelectText: {
     color: '#FFFFFF',
     fontSize: 10,
-    fontWeight: '700',
-  },
-  coachModeToggleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    padding: SPACING.md,
-    borderRadius: BORDER_RADIUS.md,
-    marginBottom: SPACING.md,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  coachModeTitle: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#FFFFFF',
-  },
-  coachModeSub: {
-    fontSize: 11,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-  },
-  verificationStatusBanner: {
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    padding: SPACING.md,
-    borderRadius: BORDER_RADIUS.md,
-    marginBottom: SPACING.md,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  verificationStatusLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: COLORS.textMuted,
-    letterSpacing: 0.5,
-  },
-  statusTag: {
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: BORDER_RADIUS.full,
-  },
-  statusTagPending: {
-    backgroundColor: 'rgba(245, 158, 11, 0.2)',
-  },
-  statusTagVerified: {
-    backgroundColor: 'rgba(16, 185, 129, 0.2)',
-  },
-  statusTagText: {
-    color: '#F87171',
-    fontSize: 11,
-    fontWeight: '800',
-  },
-  statusTagTextPending: {
-    color: '#FBBF24',
-  },
-  statusTagTextVerified: {
-    color: '#34D399',
-  },
-  submitDocBtn: {
-    backgroundColor: '#F59E0B',
-    paddingVertical: 10,
-    borderRadius: BORDER_RADIUS.md,
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  submitDocBtnText: {
-    color: '#000000',
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  coachBadgeSmall: {
-    backgroundColor: '#F59E0B',
-    paddingHorizontal: 5,
-    paddingVertical: 1,
-    borderRadius: 3,
-    marginLeft: 6,
-  },
-  coachBadgeSmallText: {
-    color: '#000000',
-    fontSize: 9,
-    fontWeight: '900',
-  },
-  coachFormBox: {
-    backgroundColor: 'rgba(245, 158, 11, 0.06)',
-    padding: SPACING.md,
-    borderRadius: BORDER_RADIUS.md,
-    borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.2)',
-    marginTop: 8,
-  },
-  subLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: COLORS.textMuted,
-    letterSpacing: 0.5,
-    marginBottom: 4,
-  },
-  singleLineInput: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: BORDER_RADIUS.md,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: 10,
-    color: COLORS.textPrimary,
-    fontSize: 13,
-    fontWeight: '600',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#0B0D14',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: COLORS.textPrimary,
-  },
-  cancelBtn: {
-    padding: 6,
-  },
-  cancelText: {
-    color: COLORS.textSecondary,
-    fontSize: 14,
-  },
-  saveBtn: {
-    padding: 6,
-  },
-  saveText: {
-    color: COLORS.primary,
-    fontWeight: '800',
-    fontSize: 15,
-  },
-  content: {
-    padding: SPACING.lg,
-    paddingBottom: 50,
-  },
-  avatarSection: {
-    alignItems: 'center',
-    marginBottom: SPACING.lg,
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 2,
-    borderColor: COLORS.primary,
-    marginBottom: 8,
-  },
-  changePhotoPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: BORDER_RADIUS.full,
-  },
-  changePhotoText: {
-    color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  sectionHeader: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: COLORS.textMuted,
-    letterSpacing: 1,
-    marginTop: SPACING.md,
-    marginBottom: SPACING.sm,
-  },
-  bioInput: {
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    borderRadius: BORDER_RADIUS.lg,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: 12,
-    color: COLORS.textPrimary,
-    fontSize: 13,
-    minHeight: 70,
-    textAlignVertical: 'top',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  singleInput: {
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    borderRadius: BORDER_RADIUS.lg,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: 11,
-    color: COLORS.textPrimary,
-    fontSize: 13,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  presetScroll: {
-    gap: 6,
-    marginBottom: SPACING.sm,
-  },
-  presetBtn: {
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: BORDER_RADIUS.full,
-    borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.25)',
-  },
-  presetBtnText: {
-    color: COLORS.primary,
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  benchmarksContainer: {
-    gap: 6,
-  },
-  benchmarkCard: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    borderRadius: BORDER_RADIUS.md,
-    padding: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
-    gap: 8,
-  },
-  benchmarkNameInput: {
-    flex: 1.2,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    borderRadius: BORDER_RADIUS.sm,
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: 7,
-    color: COLORS.textPrimary,
-    fontSize: 12,
-    fontWeight: '600',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
-  },
-  benchmarkValInput: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    borderRadius: BORDER_RADIUS.sm,
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: 7,
-    color: COLORS.primary,
-    fontSize: 12,
-    fontWeight: '700',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
-  },
-  pillsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  pill: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: BORDER_RADIUS.full,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  pillActive: {
-    backgroundColor: 'rgba(16, 185, 129, 0.2)',
-    borderColor: COLORS.primary,
-  },
-  pillText: {
-    color: COLORS.textSecondary,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  pillTextActive: {
-    color: COLORS.primary,
-    fontWeight: '700',
-  },
-  optionsList: {
-    gap: 6,
-  },
-  optionCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    paddingVertical: 10,
-    paddingHorizontal: SPACING.md,
-    borderRadius: BORDER_RADIUS.md,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
-  },
-  optionCardActive: {
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-    borderColor: COLORS.primary,
-  },
-  optionText: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    flex: 1,
-  },
-  optionTextActive: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
-  radioCircle: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 8,
-  },
-  radioCircleActive: {
-    borderColor: COLORS.primary,
-  },
-  radioDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: COLORS.primary,
-  },
-  bottomSaveBtn: {
-    backgroundColor: COLORS.primary,
-    paddingVertical: 14,
-    borderRadius: BORDER_RADIUS.lg,
-    alignItems: 'center',
-    marginTop: SPACING.xl,
-  },
-  bottomSaveText: {
-    color: '#FFFFFF',
-    fontSize: 14,
     fontWeight: '700',
   },
 });
