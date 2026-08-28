@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, Modal, Image } from 'react-native';
-import { SlidersHorizontal, Dumbbell, Sparkles, MessageCircle } from 'lucide-react-native';
-import { CardDeck } from '../components/CardDeck';
+import { SlidersHorizontal, Dumbbell, Sparkles, MessageCircle, RotateCcw } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
+import { CardDeck, CardDeckRef } from '../components/CardDeck';
 import { FilterModal, FilterSettings } from '../components/FilterModal';
 import { MOCK_PROFILES, CURRENT_USER } from '../data/mockData';
 import { UserProfile } from '../types';
@@ -12,6 +13,7 @@ interface DiscoveryScreenProps {
 }
 
 export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({ onNavigateToChat }) => {
+  const cardDeckRef = useRef<CardDeckRef>(null);
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [matchedProfile, setMatchedProfile] = useState<UserProfile | null>(null);
 
@@ -83,9 +85,21 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({ onNavigateToCh
           </View>
         </View>
 
-        <TouchableOpacity style={styles.filterBtn} onPress={() => setFilterModalVisible(true)}>
-          <SlidersHorizontal size={18} color={COLORS.textPrimary} />
-        </TouchableOpacity>
+        <View style={styles.headerRightActions}>
+          <TouchableOpacity
+            style={styles.headerIconBtn}
+            onPress={() => {
+              try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
+              cardDeckRef.current?.undo();
+            }}
+          >
+            <RotateCcw size={18} color={COLORS.textSecondary} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.headerIconBtn} onPress={() => setFilterModalVisible(true)}>
+            <SlidersHorizontal size={18} color={COLORS.textPrimary} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.gymContextBar}>
@@ -94,6 +108,7 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({ onNavigateToCh
       </View>
 
       <CardDeck
+        ref={cardDeckRef}
         key={JSON.stringify(filters)}
         profiles={displayedProfiles}
         onSwipeLeft={handleSwipeLeft}
@@ -195,7 +210,12 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '800',
   },
-  filterBtn: {
+  headerRightActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  headerIconBtn: {
     width: 38,
     height: 38,
     borderRadius: 19,

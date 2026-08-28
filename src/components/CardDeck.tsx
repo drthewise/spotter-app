@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useImperativeHandle, forwardRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -18,6 +18,10 @@ import { COLORS, BORDER_RADIUS, SPACING } from '../constants/theme';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const SWIPE_THRESHOLD = 0.25 * SCREEN_WIDTH;
 
+export interface CardDeckRef {
+  undo: () => void;
+}
+
 interface CardDeckProps {
   profiles: UserProfile[];
   onSwipeLeft: (profile: UserProfile) => void;
@@ -26,13 +30,13 @@ interface CardDeckProps {
   onOpenFilter?: () => void;
 }
 
-export const CardDeck: React.FC<CardDeckProps> = ({
+export const CardDeck = forwardRef<CardDeckRef, CardDeckProps>(({
   profiles,
   onSwipeLeft,
   onSwipeRight,
   onSuperSpot,
   onOpenFilter,
-}) => {
+}, ref) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [superSpotModalVisible, setSuperSpotModalVisible] = useState(false);
   const position = useRef(new Animated.ValueXY()).current;
@@ -92,6 +96,10 @@ export const CardDeck: React.FC<CardDeckProps> = ({
       useNativeDriver: false,
     }).start();
   };
+
+  useImperativeHandle(ref, () => ({
+    undo: undoSwipe,
+  }));
 
   const undoSwipe = () => {
     if (currentIndex > 0) {
@@ -180,14 +188,6 @@ export const CardDeck: React.FC<CardDeckProps> = ({
       </View>
 
       <View style={styles.actionsBar}>
-        <TouchableOpacity
-          style={[styles.smallActionBtn, currentIndex === 0 && styles.btnDisabled]}
-          onPress={undoSwipe}
-          disabled={currentIndex === 0}
-        >
-          <RotateCcw size={18} color={currentIndex === 0 ? COLORS.textMuted : COLORS.textSecondary} />
-        </TouchableOpacity>
-
         <TouchableOpacity style={[styles.mainActionBtn, styles.passBtn]} onPress={() => forceSwipe('left')}>
           <X size={28} color={COLORS.pass} strokeWidth={2.5} />
         </TouchableOpacity>
@@ -215,7 +215,7 @@ export const CardDeck: React.FC<CardDeckProps> = ({
       />
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -271,8 +271,9 @@ const styles = StyleSheet.create({
   actionsBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    width: SCREEN_WIDTH * 0.9,
+    justifyContent: 'center',
+    gap: 24,
+    width: '100%',
     paddingVertical: SPACING.md,
   },
   smallActionBtn: {
