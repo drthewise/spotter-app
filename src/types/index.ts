@@ -25,6 +25,12 @@ export type WorkoutSplit =
   | 'Push / Pull / Legs (PPL)' 
   | 'Upper / Lower';
 
+export type PartnershipCadence = 
+  | 'Consistent Weekly Partner (3-4x/week)'
+  | 'Weekly Anchor Partner (1-2x/week)'
+  | 'Drop-In / As-Needed Spots'
+  | 'Flexible / Open to Both';
+
 export type TimeSlot = 'early_morning' | 'midday' | 'evening' | 'night';
 
 export interface ScheduleDay {
@@ -45,8 +51,8 @@ export interface PrivacySettings {
 
 export interface BenchmarkItem {
   id: string;
-  name: string; // e.g. "Barbell Hip Thrust", "Flat Bench", "Sled Push", "Max Pull-ups"
-  value: string; // e.g. "275 lbs", "225 lbs (3x8)", "150 kg", "15 reps"
+  name: string;
+  value: string;
 }
 
 export interface StrengthBenchmarks {
@@ -86,6 +92,8 @@ export interface UserProfile {
   experienceLevel: ExperienceLevel;
   primaryModalities: Modality[];
   workoutSplit: WorkoutSplit;
+  partnershipCadence?: PartnershipCadence;
+  cadenceCommitment?: string; // e.g. "Mon / Wed / Fri @ 6:30 AM"
   schedule: ScheduleDay[];
   spottingStyle: string;
   gymEnergy: string;
@@ -123,6 +131,10 @@ export interface WorkoutSession {
   partnerCheckedIn: boolean;
   status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
   reviewed?: boolean;
+  isRecurring?: boolean;
+  recurringDays?: string[];
+  streakWeeks?: number;
+  totalSessionsCompleted?: number;
 }
 
 export interface ChatMessage {

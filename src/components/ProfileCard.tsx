@@ -105,7 +105,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
             </TouchableOpacity>
           </View>
 
-          {/* Second Row: Gym & Distance Pill */}
+          {/* Second Row: Gym, Distance & Recurring Cadence Pill */}
           <View style={styles.pillRow} pointerEvents="none">
             <View style={[styles.gymPill, isSameGym && styles.sameGymPill]}>
               <View style={[styles.gymDot, isSameGym && styles.sameGymDot]} />
@@ -113,6 +113,12 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
                 {isSameGym ? `${profile.primaryGym.brand} (Same Gym)` : profile.primaryGym.brand}
               </Text>
             </View>
+
+            {profile.cadenceCommitment && (
+              <View style={styles.cadencePill}>
+                <Text style={styles.cadencePillText}>🔄 {profile.cadenceCommitment}</Text>
+              </View>
+            )}
 
             <View style={styles.distancePill}>
               <MapPin size={11} color={COLORS.textSecondary} style={{ marginRight: 3 }} />
@@ -152,6 +158,19 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
 };
 
 const styles = StyleSheet.create({
+  cadencePill: {
+    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: BORDER_RADIUS.full,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.35)',
+  },
+  cadencePillText: {
+    color: '#34D399',
+    fontSize: 11,
+    fontWeight: '700',
+  },
   card: {
     width: SCREEN_WIDTH - 24,
     height: CARD_HEIGHT,

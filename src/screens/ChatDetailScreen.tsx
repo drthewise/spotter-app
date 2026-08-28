@@ -99,6 +99,10 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
       userCheckedIn: false,
       partnerCheckedIn: false,
       status: 'scheduled',
+      isRecurring: details.isRecurring,
+      recurringDays: details.recurringDays,
+      streakWeeks: details.isRecurring ? 1 : undefined,
+      totalSessionsCompleted: details.isRecurring ? 1 : undefined,
     };
 
     setCurrentSession(newSession);
@@ -107,7 +111,7 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
     const proposalMsg: ChatMessage = {
       id: 'prop_' + Date.now(),
       senderId: CURRENT_USER.id,
-      text: '⚡ Workout Locked In for ' + details.day + ' @ ' + details.time + ' (' + details.split + ') at ' + match.partner.primaryGym.branchName + (details.note ? ': "' + details.note + '"' : ''),
+      text: (details.isRecurring ? '🔄 Standing Partnership Locked In: ' : '⚡ Workout Locked In for ') + details.day + ' @ ' + details.time + ' (' + details.split + ') at ' + match.partner.primaryGym.branchName + (details.note ? ': "' + details.note + '"' : ''),
       timestamp: 'Just now',
     };
 
@@ -171,17 +175,24 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
         </View>
       </View>
 
-      {/* Workout Session Banner */}
+      {/* Workout Session Banner with Recurring Streak */}
       {currentSession ? (
-        <View style={styles.workoutBanner}>
+        <View style={[styles.workoutBanner, currentSession.isRecurring && styles.workoutBannerRecurring]}>
           <View style={styles.bannerLeft}>
-            <View style={styles.sessionIconCircle}>
-              <Dumbbell size={16} color={COLORS.primary} />
+            <View style={[styles.sessionIconCircle, currentSession.isRecurring && styles.sessionIconCircleRecurring]}>
+              <Dumbbell size={16} color={currentSession.isRecurring ? '#FBBF24' : COLORS.primary} />
             </View>
             <View style={styles.bannerTextCol}>
-              <Text style={styles.bannerTitle} numberOfLines={1} ellipsizeMode="tail">
-                {currentSession.scheduledDate} @ {currentSession.scheduledTime}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={styles.bannerTitle} numberOfLines={1} ellipsizeMode="tail">
+                  {currentSession.isRecurring ? '🔄 ' + (currentSession.recurringDays ? currentSession.recurringDays.join('/') : 'Standing') + ' @ ' + currentSession.scheduledTime : currentSession.scheduledDate + ' @ ' + currentSession.scheduledTime}
+                </Text>
+                {currentSession.isRecurring && (
+                  <View style={styles.streakBadge}>
+                    <Text style={styles.streakBadgeText}>🔥 {currentSession.streakWeeks || 3}w Streak</Text>
+                  </View>
+                )}
+              </View>
               <Text style={styles.bannerSub} numberOfLines={1} ellipsizeMode="tail">
                 {currentSession.splitFocus} • {currentSession.gymName}
               </Text>
@@ -202,7 +213,7 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
               onPress={() => setReviewModalVisible(true)}
               activeOpacity={0.8}
             >
-              <Star size={12} color={sessionReviewed ? '#FBBF24' : '#FBBF24'} fill={sessionReviewed ? '#FBBF24' : 'none'} style={{ marginRight: 3 }} />
+              <Star size={12} color="#FBBF24" fill={sessionReviewed ? '#FBBF24' : 'none'} style={{ marginRight: 3 }} />
               <Text style={styles.reviewBtnText}>{sessionReviewed ? 'Reviewed' : 'Review'}</Text>
             </TouchableOpacity>
           </View>
@@ -315,6 +326,27 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
 };
 
 const styles = StyleSheet.create({
+  workoutBannerRecurring: {
+    backgroundColor: 'rgba(245, 158, 11, 0.12)',
+    borderBottomColor: 'rgba(245, 158, 11, 0.3)',
+  },
+  sessionIconCircleRecurring: {
+    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+  },
+  streakBadge: {
+    backgroundColor: 'rgba(245, 158, 11, 0.25)',
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 4,
+    marginLeft: 6,
+    borderWidth: 1,
+    borderColor: '#FBBF24',
+  },
+  streakBadgeText: {
+    color: '#FBBF24',
+    fontSize: 9,
+    fontWeight: '800',
+  },
   safeArea: {
     flex: 1,
     backgroundColor: COLORS.background,

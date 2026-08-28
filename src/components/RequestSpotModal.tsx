@@ -33,6 +33,8 @@ export interface SpotProposalDetails {
   time: string;
   split: string;
   note: string;
+  isRecurring?: boolean;
+  recurringDays?: string[];
 }
 
 interface RequestSpotModalProps {
@@ -71,6 +73,10 @@ export const RequestSpotModal: React.FC<RequestSpotModalProps> = ({
   const [selectedDayNum, setSelectedDayNum] = useState(28); // Tomorrow (Aug 28)
   const [formattedDateText, setFormattedDateText] = useState('Friday, Aug 28');
   const [showCalendarGrid, setShowCalendarGrid] = useState(false);
+
+  // Mode state: One-Time Session vs Standing Recurring Partner
+  const [proposalType, setProposalType] = useState<'single' | 'recurring'>('single');
+  const [recurringDays, setRecurringDays] = useState<string[]>(['Mon', 'Wed', 'Fri']);
 
   // Time state
   const [selectedTime, setSelectedTime] = useState('6:00 PM');
@@ -195,6 +201,17 @@ export const RequestSpotModal: React.FC<RequestSpotModalProps> = ({
     }
   };
 
+  const toggleRecurringDay = (day: string) => {
+    try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
+    if (recurringDays.includes(day)) {
+      if (recurringDays.length > 1) {
+        setRecurringDays(recurringDays.filter((d) => d !== day));
+      }
+    } else {
+      setRecurringDays([...recurringDays, day]);
+    }
+  };
+
   const applyCustomTime = (h: string, m: string, ap: 'AM' | 'PM') => {
     try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
     setCustomHour(h);
@@ -206,10 +223,12 @@ export const RequestSpotModal: React.FC<RequestSpotModalProps> = ({
   const handleSend = () => {
     try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); } catch (e) {}
     onSubmit({
-      day: formattedDateText,
+      day: proposalType === 'recurring' ? recurringDays.join(' / ') + ' (Standing)' : formattedDateText,
       time: selectedTime,
       split: selectedSplit,
       note: note.trim(),
+      isRecurring: proposalType === 'recurring',
+      recurringDays: proposalType === 'recurring' ? recurringDays : undefined,
     });
     handleDismiss();
   };
@@ -243,129 +262,184 @@ export const RequestSpotModal: React.FC<RequestSpotModalProps> = ({
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollBody}>
-            {/* When Are You Training / Date Picker */}
-            <View style={styles.sectionHeaderRow}>
-              <CalendarIcon size={15} color={COLORS.accentPurple} />
-              <Text style={styles.sectionTitle}>WHEN ARE YOU TRAINING?</Text>
+            {/* Partnership Type Segmented Switch */}
+            <View style={styles.proposalTypeRow}>
               <TouchableOpacity
-                style={styles.expandCalendarToggle}
+                style={[styles.typeBtn, proposalType === 'single' && styles.typeBtnActive]}
                 onPress={() => {
                   try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
-                  setShowCalendarGrid(!showCalendarGrid);
+                  setProposalType('single');
                 }}
               >
-                <Text style={styles.expandCalendarText}>
-                  {showCalendarGrid ? 'Hide Calendar' : '📅 Pick Date'}
+                <Zap size={14} color={proposalType === 'single' ? '#FFFFFF' : COLORS.textMuted} style={{ marginRight: 4 }} />
+                <Text style={[styles.typeBtnText, proposalType === 'single' && styles.typeBtnTextActive]}>
+                  One-Time Session
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.typeBtn, proposalType === 'recurring' && styles.typeBtnActiveRecurring]}
+                onPress={() => {
+                  try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
+                  setProposalType('recurring');
+                }}
+              >
+                <Text style={[styles.typeBtnText, proposalType === 'recurring' && styles.typeBtnTextActiveRecurring]}>
+                  🔄 Standing Partner (Weekly)
                 </Text>
               </TouchableOpacity>
             </View>
 
-            {/* Quick Date Presets */}
-            <View style={styles.pillRow}>
-              <TouchableOpacity
-                style={[styles.pill, formattedDateText.includes('Aug 27') && styles.pillActive]}
-                onPress={() => handleQuickPresetDate('Today, Aug 27', 27)}
-              >
-                <Text style={[styles.pillText, formattedDateText.includes('Aug 27') && styles.pillTextActive]}>
-                  Today
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.pill, formattedDateText.includes('Aug 28') && styles.pillActive]}
-                onPress={() => handleQuickPresetDate('Tomorrow, Aug 28', 28)}
-              >
-                <Text style={[styles.pillText, formattedDateText.includes('Aug 28') && styles.pillTextActive]}>
-                  Tomorrow
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.pill, formattedDateText.includes('Aug 29') && styles.pillActive]}
-                onPress={() => handleQuickPresetDate('Friday, Aug 29', 29)}
-              >
-                <Text style={[styles.pillText, formattedDateText.includes('Aug 29') && styles.pillTextActive]}>
-                  This Friday
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.pill, formattedDateText.includes('Aug 30') && styles.pillActive]}
-                onPress={() => handleQuickPresetDate('Saturday, Aug 30', 30)}
-              >
-                <Text style={[styles.pillText, formattedDateText.includes('Aug 30') && styles.pillTextActive]}>
-                  Saturday
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Expandable Interactive Calendar Grid */}
-            {showCalendarGrid && (
-              <View style={styles.calendarContainer}>
-                {/* Month Switcher */}
-                <View style={styles.calendarHeader}>
-                  <TouchableOpacity onPress={handlePrevMonth} style={styles.monthNavBtn}>
-                    <ChevronLeft size={18} color={COLORS.textPrimary} />
-                  </TouchableOpacity>
-                  <Text style={styles.monthTitle}>
-                    {MONTH_NAMES[currentMonth]} {currentYear}
-                  </Text>
-                  <TouchableOpacity onPress={handleNextMonth} style={styles.monthNavBtn}>
-                    <ChevronRight size={18} color={COLORS.textPrimary} />
-                  </TouchableOpacity>
-                </View>
-
-                {/* Day of Week Row */}
-                <View style={styles.daysRow}>
-                  {DAYS_OF_WEEK.map((d, i) => (
-                    <Text key={i} style={styles.dayOfWeekText}>{d}</Text>
-                  ))}
-                </View>
-
-                {/* Days Matrix */}
-                <View style={styles.daysGrid}>
-                  {/* Empty offset spaces */}
-                  {Array.from({ length: firstDayIndex }).map((_, i) => (
-                    <View key={`empty_${i}`} style={styles.emptyDayCell} />
-                  ))}
-
-                  {/* Day cells */}
-                  {Array.from({ length: daysInMonth }).map((_, i) => {
-                    const dayNum = i + 1;
-                    const isSelected = selectedDayNum === dayNum;
-                    const isToday = currentMonth === 7 && dayNum === 27;
-
+            {proposalType === 'recurring' ? (
+              /* Recurring Partnership Days Selector */
+              <View style={styles.recurringSection}>
+                <Text style={styles.sectionTitle}>SELECT RECURRING WORKOUT DAYS</Text>
+                <View style={styles.pillRow}>
+                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => {
+                    const isSelected = recurringDays.includes(day);
                     return (
                       <TouchableOpacity
-                        key={dayNum}
-                        style={[
-                          styles.dayCell,
-                          isSelected && styles.dayCellSelected,
-                          isToday && !isSelected && styles.dayCellToday,
-                        ]}
-                        onPress={() => handleSelectDate(dayNum)}
+                        key={day}
+                        style={[styles.pill, isSelected && styles.pillActiveRecurring]}
+                        onPress={() => toggleRecurringDay(day)}
                       >
-                        <Text
-                          style={[
-                            styles.dayCellText,
-                            isSelected && styles.dayCellTextSelected,
-                            isToday && !isSelected && styles.dayCellTextToday,
-                          ]}
-                        >
-                          {dayNum}
+                        <Text style={[styles.pillText, isSelected && styles.pillTextActiveRecurring]}>
+                          {isSelected ? '✓ ' + day : day}
                         </Text>
                       </TouchableOpacity>
                     );
                   })}
                 </View>
+                <View style={styles.recurringSummaryBox}>
+                  <Text style={styles.recurringSummaryTitle}>
+                    🔥 {recurringDays.length}x / Week Standing Commitment
+                  </Text>
+                  <Text style={styles.recurringSummarySub}>
+                    Establishes a weekly consistency streak with {profile.name} at {profile.primaryGym.branchName}.
+                  </Text>
+                </View>
               </View>
-            )}
+            ) : (
+              /* One-Time Date Picker */
+              <>
+                <View style={styles.sectionHeaderRow}>
+                  <CalendarIcon size={15} color={COLORS.accentPurple} />
+                  <Text style={styles.sectionTitle}>WHEN ARE YOU TRAINING?</Text>
+                  <TouchableOpacity
+                    style={styles.expandCalendarToggle}
+                    onPress={() => {
+                      try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
+                      setShowCalendarGrid(!showCalendarGrid);
+                    }}
+                  >
+                    <Text style={styles.expandCalendarText}>
+                      {showCalendarGrid ? 'Hide Calendar' : '📅 Pick Date'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
 
-            {/* Selected Date Summary Tag */}
-            <View style={styles.selectedDateBanner}>
-              <CalendarIcon size={14} color={COLORS.primary} style={{ marginRight: 6 }} />
-              <Text style={styles.selectedDateText}>Selected: {formattedDateText}</Text>
-            </View>
+                {/* Quick Date Presets */}
+                <View style={styles.pillRow}>
+                  <TouchableOpacity
+                    style={[styles.pill, formattedDateText.includes('Aug 27') && styles.pillActive]}
+                    onPress={() => handleQuickPresetDate('Today, Aug 27', 27)}
+                  >
+                    <Text style={[styles.pillText, formattedDateText.includes('Aug 27') && styles.pillTextActive]}>
+                      Today
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.pill, formattedDateText.includes('Aug 28') && styles.pillActive]}
+                    onPress={() => handleQuickPresetDate('Tomorrow, Aug 28', 28)}
+                  >
+                    <Text style={[styles.pillText, formattedDateText.includes('Aug 28') && styles.pillTextActive]}>
+                      Tomorrow
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.pill, formattedDateText.includes('Aug 29') && styles.pillActive]}
+                    onPress={() => handleQuickPresetDate('Friday, Aug 29', 29)}
+                  >
+                    <Text style={[styles.pillText, formattedDateText.includes('Aug 29') && styles.pillTextActive]}>
+                      This Friday
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.pill, formattedDateText.includes('Aug 30') && styles.pillActive]}
+                    onPress={() => handleQuickPresetDate('Saturday, Aug 30', 30)}
+                  >
+                    <Text style={[styles.pillText, formattedDateText.includes('Aug 30') && styles.pillTextActive]}>
+                      Saturday
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Expandable Interactive Calendar Grid */}
+                {showCalendarGrid && (
+                  <View style={styles.calendarContainer}>
+                    <View style={styles.calendarHeader}>
+                      <TouchableOpacity onPress={handlePrevMonth} style={styles.monthNavBtn}>
+                        <ChevronLeft size={18} color={COLORS.textPrimary} />
+                      </TouchableOpacity>
+                      <Text style={styles.monthTitle}>
+                        {MONTH_NAMES[currentMonth]} {currentYear}
+                      </Text>
+                      <TouchableOpacity onPress={handleNextMonth} style={styles.monthNavBtn}>
+                        <ChevronRight size={18} color={COLORS.textPrimary} />
+                      </TouchableOpacity>
+                    </View>
+
+                    <View style={styles.daysRow}>
+                      {DAYS_OF_WEEK.map((d, i) => (
+                        <Text key={i} style={styles.dayOfWeekText}>{d}</Text>
+                      ))}
+                    </View>
+
+                    <View style={styles.daysGrid}>
+                      {Array.from({ length: firstDayIndex }).map((_, i) => (
+                        <View key={`empty_${i}`} style={styles.emptyDayCell} />
+                      ))}
+
+                      {Array.from({ length: daysInMonth }).map((_, i) => {
+                        const dayNum = i + 1;
+                        const isSelected = selectedDayNum === dayNum;
+                        const isToday = currentMonth === 7 && dayNum === 27;
+
+                        return (
+                          <TouchableOpacity
+                            key={dayNum}
+                            style={[
+                              styles.dayCell,
+                              isSelected && styles.dayCellSelected,
+                              isToday && !isSelected && styles.dayCellToday,
+                            ]}
+                            onPress={() => handleSelectDate(dayNum)}
+                          >
+                            <Text
+                              style={[
+                                styles.dayCellText,
+                                isSelected && styles.dayCellTextSelected,
+                                isToday && !isSelected && styles.dayCellTextToday,
+                              ]}
+                            >
+                              {dayNum}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  </View>
+                )}
+
+                <View style={styles.selectedDateBanner}>
+                  <CalendarIcon size={14} color={COLORS.primary} style={{ marginRight: 6 }} />
+                  <Text style={styles.selectedDateText}>Selected: {formattedDateText}</Text>
+                </View>
+              </>
+            )}
 
             {/* Target Time Window */}
             <View style={[styles.sectionHeaderRow, { marginTop: SPACING.md }]}>
@@ -484,7 +558,7 @@ export const RequestSpotModal: React.FC<RequestSpotModalProps> = ({
             <Text style={[styles.sectionTitle, { marginTop: SPACING.sm }]}>ADD A NOTE / LIFT GOALS (OPTIONAL)</Text>
             <TextInput
               style={styles.input}
-              placeholder="e.g. Going for a heavy bench PR or 225 working sets, need lift-off!"
+              placeholder="e.g. Going for heavy compound progression, let's keep each other consistent!"
               placeholderTextColor={COLORS.textMuted}
               value={note}
               onChangeText={setNote}
@@ -495,7 +569,9 @@ export const RequestSpotModal: React.FC<RequestSpotModalProps> = ({
             {/* Submit */}
             <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
               <Zap size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
-              <Text style={styles.sendButtonText}>Send Workout Proposal</Text>
+              <Text style={styles.sendButtonText}>
+                {proposalType === 'recurring' ? 'Lock In Standing Partnership' : 'Send Workout Proposal'}
+              </Text>
             </TouchableOpacity>
           </ScrollView>
         </Animated.View>
@@ -571,6 +647,69 @@ const styles = StyleSheet.create({
   scrollBody: {
     padding: SPACING.xl,
     paddingBottom: 40,
+  },
+  proposalTypeRow: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderRadius: BORDER_RADIUS.md,
+    padding: 3,
+    gap: 4,
+    marginBottom: SPACING.md,
+  },
+  typeBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    borderRadius: BORDER_RADIUS.sm,
+  },
+  typeBtnActive: {
+    backgroundColor: COLORS.accentPurple,
+  },
+  typeBtnActiveRecurring: {
+    backgroundColor: COLORS.primary,
+  },
+  typeBtnText: {
+    color: COLORS.textMuted,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  typeBtnTextActive: {
+    color: '#FFFFFF',
+  },
+  typeBtnTextActiveRecurring: {
+    color: '#FFFFFF',
+  },
+  recurringSection: {
+    marginBottom: SPACING.md,
+  },
+  pillActiveRecurring: {
+    backgroundColor: 'rgba(16, 185, 129, 0.25)',
+    borderColor: COLORS.primary,
+  },
+  pillTextActiveRecurring: {
+    color: COLORS.primary,
+    fontWeight: '700',
+  },
+  recurringSummaryBox: {
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.25)',
+    marginTop: 4,
+  },
+  recurringSummaryTitle: {
+    color: COLORS.primary,
+    fontSize: 13,
+    fontWeight: '800',
+    marginBottom: 2,
+  },
+  recurringSummarySub: {
+    color: COLORS.textSecondary,
+    fontSize: 11,
+    lineHeight: 15,
   },
   sectionHeaderRow: {
     flexDirection: 'row',

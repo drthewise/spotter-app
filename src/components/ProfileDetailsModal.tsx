@@ -246,6 +246,25 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
               </View>
             )}
 
+                        {/* Standing Partnership Cadence & Availability */}
+            {profile.cadenceCommitment && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>STANDING PARTNERSHIP CADENCE</Text>
+                <View style={styles.cadenceBox}>
+                  <View style={styles.cadenceHeaderRow}>
+                    <Text style={styles.cadenceTitle}>🔄 {profile.partnershipCadence || 'Consistent Weekly Partner'}</Text>
+                    <View style={styles.streakBadgeDossier}>
+                      <Text style={styles.streakBadgeDossierText}>🔥 94% Overlap</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.cadenceCommitmentText}>⏰ {profile.cadenceCommitment}</Text>
+                  <Text style={styles.cadenceSub}>
+                    Looking for a dedicated partner to hold each other accountable on regular compound days.
+                  </Text>
+                </View>
+              </View>
+            )}
+
             {/* Reliability & Experience Badges */}
             <View style={styles.statGrid}>
               <View style={styles.statBox}>
@@ -463,6 +482,48 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
 };
 
 const styles = StyleSheet.create({
+  cadenceBox: {
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.3)',
+  },
+  cadenceHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  cadenceTitle: {
+    color: '#34D399',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  streakBadgeDossier: {
+    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: BORDER_RADIUS.full,
+    borderWidth: 1,
+    borderColor: '#FBBF24',
+  },
+  streakBadgeDossierText: {
+    color: '#FBBF24',
+    fontSize: 10,
+    fontWeight: '800',
+  },
+  cadenceCommitmentText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  cadenceSub: {
+    color: COLORS.textSecondary,
+    fontSize: 11,
+    lineHeight: 16,
+  },
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.75)',

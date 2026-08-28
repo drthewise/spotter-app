@@ -22,6 +22,8 @@ export const CURRENT_USER: UserProfile = {
   experienceLevel: 'Advanced',
   primaryModalities: ['Powerlifting', 'Bodybuilding'],
   workoutSplit: 'Push / Pull / Legs (PPL)',
+  partnershipCadence: 'Consistent Weekly Partner (3-4x/week)',
+  cadenceCommitment: 'Mon / Wed / Fri @ 6:30 AM',
   schedule: [
     { day: 'Mon', slots: ['early_morning', 'evening'] },
     { day: 'Wed', slots: ['early_morning'] },
@@ -74,6 +76,8 @@ export const MOCK_PROFILES: UserProfile[] = [
     experienceLevel: 'Advanced',
     primaryModalities: ['Glute & Lower Body', 'Bodybuilding'],
     workoutSplit: 'Glute / Hamstrings / Upper (Lower Focus)',
+    partnershipCadence: 'Consistent Weekly Partner (3-4x/week)',
+    cadenceCommitment: 'Mon / Wed / Fri @ 6:00 PM',
     schedule: [
       { day: 'Mon', slots: ['evening'] },
       { day: 'Wed', slots: ['evening'] },
@@ -176,6 +180,8 @@ export const MOCK_PROFILES: UserProfile[] = [
     experienceLevel: 'Intermediate',
     primaryModalities: ['Glute & Lower Body', 'General Fitness'],
     workoutSplit: 'Glutes & Quads / Upper Body',
+    partnershipCadence: 'Consistent Weekly Partner (3-4x/week)',
+    cadenceCommitment: 'Mon / Wed / Fri @ 6:00 AM',
     schedule: [
       { day: 'Mon', slots: ['early_morning'] },
       { day: 'Wed', slots: ['early_morning'] },
@@ -329,6 +335,8 @@ export const MOCK_PROFILES: UserProfile[] = [
     experienceLevel: 'Advanced',
     primaryModalities: ['HYROX', 'CrossFit'],
     workoutSplit: 'Functional & HYROX Relays',
+    partnershipCadence: 'Consistent Weekly Partner (3-4x/week)',
+    cadenceCommitment: 'Tue / Thu @ 6:00 AM & Sat 10 AM',
     schedule: [
       { day: 'Tue', slots: ['early_morning'] },
       { day: 'Thu', slots: ['early_morning'] },
@@ -379,6 +387,8 @@ export const MOCK_PROFILES: UserProfile[] = [
     experienceLevel: 'Beginner',
     primaryModalities: ['General Fitness', 'Running / Cardio'],
     workoutSplit: 'General Fitness & Toning',
+    partnershipCadence: 'Consistent Weekly Partner (3-4x/week)',
+    cadenceCommitment: 'Tue / Thu @ 6:30 PM',
     schedule: [
       { day: 'Tue', slots: ['evening'] },
       { day: 'Thu', slots: ['evening'] },
@@ -520,6 +530,10 @@ export const MOCK_MATCHES: Match[] = [
       userCheckedIn: true,
       partnerCheckedIn: true,
       status: 'scheduled',
+      isRecurring: true,
+      recurringDays: ['Mon', 'Wed', 'Fri'],
+      streakWeeks: 3,
+      totalSessionsCompleted: 9,
     },
     messages: [
       {
