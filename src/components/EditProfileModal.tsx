@@ -738,7 +738,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
               </View>
 
               <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
-                {/* Hero Weight Display with Stepper Buttons */}
+                {/* Hero Directly-Editable Weight Number with Steppers */}
                 <View style={styles.stepperDisplayBox}>
                   <View style={styles.stepperBtnGroup}>
                     <TouchableOpacity
@@ -764,7 +764,18 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                   </View>
 
                   <View style={styles.stepperCenterNumber}>
-                    <Text style={styles.stepperHeroNumber}>{selectedWeightNumber}</Text>
+                    <TextInput
+                      style={styles.stepperHeroInput}
+                      value={selectedWeightNumber > 0 ? selectedWeightNumber.toString() : ''}
+                      placeholder="0"
+                      placeholderTextColor="rgba(255, 255, 255, 0.3)"
+                      keyboardType="number-pad"
+                      selectTextOnFocus
+                      onChangeText={(text) => {
+                        const cleaned = text.replace(/\D/g, '');
+                        setSelectedWeightNumber(cleaned ? parseInt(cleaned, 10) : 0);
+                      }}
+                    />
                     <Text style={styles.stepperHeroUnit}>
                       {selectedUnit.toUpperCase()} {selectedScheme}
                     </Text>
@@ -842,55 +853,6 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                       </TouchableOpacity>
                     );
                   })}
-                </View>
-
-                {/* Built-in Clean Gym Keypad / Numpad */}
-                <Text style={styles.dialerSectionLabel}>CUSTOM NUMBER KEYPAD</Text>
-                <View style={styles.keypadGrid}>
-                  {[
-                    ['1', '2', '3'],
-                    ['4', '5', '6'],
-                    ['7', '8', '9'],
-                    ['CLEAR', '0', '⌫'],
-                  ].map((row, rowIdx) => (
-                    <View key={rowIdx} style={styles.keypadRow}>
-                      {row.map((key) => (
-                        <TouchableOpacity
-                          key={key}
-                          style={[
-                            styles.keypadKey,
-                            (key === 'CLEAR' || key === '⌫') && styles.keypadKeyAction,
-                          ]}
-                          onPress={() => {
-                            try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
-                            if (key === 'CLEAR') {
-                              setSelectedWeightNumber(0);
-                            } else if (key === '⌫') {
-                              const str = selectedWeightNumber.toString();
-                              const newStr = str.length > 1 ? str.slice(0, -1) : '0';
-                              setSelectedWeightNumber(parseInt(newStr, 10));
-                            } else {
-                              const str = selectedWeightNumber === 0 ? key : selectedWeightNumber.toString() + key;
-                              const num = parseInt(str, 10);
-                              if (num <= 1500) {
-                                setSelectedWeightNumber(num);
-                              }
-                            }
-                          }}
-                          activeOpacity={0.7}
-                        >
-                          <Text
-                            style={[
-                              styles.keypadKeyText,
-                              (key === 'CLEAR' || key === '⌫') && styles.keypadKeyActionText,
-                            ]}
-                          >
-                            {key}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  ))}
                 </View>
 
                 {/* Working Scheme (3x8, 5x5, 1RM, 3x10) */}
@@ -1014,6 +976,15 @@ const styles = StyleSheet.create({
   stepperCenterNumber: {
     alignItems: 'center',
     flex: 1,
+  },
+  stepperHeroInput: {
+    fontSize: 42,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    letterSpacing: 1,
+    textAlign: 'center',
+    minWidth: 100,
+    paddingVertical: 0,
   },
   stepperHeroNumber: {
     fontSize: 38,
