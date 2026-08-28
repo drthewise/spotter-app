@@ -103,13 +103,19 @@ export interface UserProfile {
   reliabilityScore: number;
   completedWorkoutsCount: number;
   
-  // Trainer & Coach Credentials
+  // Trainer & Coach Credentials & Documentation Verification
   isCoach?: boolean;
   coachTitle?: string;
   certifications?: string[];
   coachingSpecialties?: string[];
   acceptingClients?: boolean;
   hourlyRate?: string;
+  coachVerificationStatus?: 'none' | 'pending' | 'verified' | 'rejected';
+  accreditationBody?: 'NSCA' | 'NASM' | 'USAW' | 'ACE' | 'ACSM' | 'CrossFit' | 'ISSA' | 'Other';
+  credentialIdNumber?: string;
+  cprAedVerified?: boolean;
+  liabilityInsuranceVerified?: boolean;
+  verificationDate?: string;
   
   privacy: PrivacySettings;
 }

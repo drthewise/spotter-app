@@ -396,6 +396,55 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
 };
 
 const styles = StyleSheet.create({
+  verificationStatusBanner: {
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    marginBottom: SPACING.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  verificationStatusLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: COLORS.textMuted,
+    letterSpacing: 0.5,
+  },
+  statusTag: {
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: BORDER_RADIUS.full,
+  },
+  statusTagPending: {
+    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+  },
+  statusTagVerified: {
+    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+  },
+  statusTagText: {
+    color: '#F87171',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  statusTagTextPending: {
+    color: '#FBBF24',
+  },
+  statusTagTextVerified: {
+    color: '#34D399',
+  },
+  submitDocBtn: {
+    backgroundColor: '#F59E0B',
+    paddingVertical: 10,
+    borderRadius: BORDER_RADIUS.md,
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  submitDocBtnText: {
+    color: '#000000',
+    fontSize: 12,
+    fontWeight: '800',
+  },
   coachBadgeSmall: {
     backgroundColor: '#F59E0B',
     paddingHorizontal: 5,

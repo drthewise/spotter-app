@@ -25,6 +25,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Maximize2,
+  CheckCircle,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { UserProfile } from '../types';
@@ -314,6 +315,28 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
                     <Text style={styles.coachRateText}>💰 {profile.hourlyRate}</Text>
                   )}
 
+                  {/* Audited Credential Verification Stamp */}
+                  {profile.coachVerificationStatus === 'verified' && (
+                    <View style={styles.auditStampBox}>
+                      <View style={styles.auditStampRow}>
+                        <ShieldCheck size={14} color="#10B981" style={{ marginRight: 6 }} />
+                        <Text style={styles.auditStampText}>
+                          Verified {profile.accreditationBody} License #{profile.credentialIdNumber || 'AUDITED'}
+                        </Text>
+                      </View>
+                      <View style={styles.auditStampRow}>
+                        <CheckCircle size={13} color="#10B981" style={{ marginRight: 6 }} />
+                        <Text style={styles.auditStampSubText}>Current Red Cross CPR / AED on file</Text>
+                      </View>
+                      {profile.liabilityInsuranceVerified && (
+                        <View style={styles.auditStampRow}>
+                          <CheckCircle size={13} color="#10B981" style={{ marginRight: 6 }} />
+                          <Text style={styles.auditStampSubText}>Professional Trainer Liability Insurance verified</Text>
+                        </View>
+                      )}
+                    </View>
+                  )}
+
                   {/* Certifications Row */}
                   {profile.certifications && (
                     <View style={styles.certRow}>
@@ -530,6 +553,29 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
 };
 
 const styles = StyleSheet.create({
+  auditStampBox: {
+    backgroundColor: 'rgba(16, 185, 129, 0.08)',
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.sm + 2,
+    marginVertical: SPACING.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.25)',
+    gap: 4,
+  },
+  auditStampRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  auditStampText: {
+    color: '#34D399',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  auditStampSubText: {
+    color: '#A7F3D0',
+    fontSize: 10,
+    fontWeight: '600',
+  },
   coachDossierCard: {
     backgroundColor: 'rgba(245, 158, 11, 0.08)',
     borderRadius: BORDER_RADIUS.lg,

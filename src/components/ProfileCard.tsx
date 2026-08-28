@@ -93,7 +93,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
                 <Text style={styles.name}>
                   {profile.name}, <Text style={styles.age}>{profile.age}</Text>
                 </Text>
-                {profile.isCoach && (
+                {profile.isCoach && profile.coachVerificationStatus === 'verified' && (
                   <View style={styles.coachCardBadge}>
                     <Text style={styles.coachCardBadgeText}>🏅 COACH</Text>
                   </View>
