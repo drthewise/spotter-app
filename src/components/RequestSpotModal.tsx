@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,9 @@ import {
   TextInput,
   ScrollView,
   Dimensions,
+  Animated,
+  PanResponder,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import {
   Zap,
@@ -16,11 +19,14 @@ import {
   Clock,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Check,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { COLORS, BORDER_RADIUS, SPACING } from '../constants/theme';
 import { UserProfile } from '../types';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export interface SpotProposalDetails {
   day: string;
@@ -60,7 +66,6 @@ export const RequestSpotModal: React.FC<RequestSpotModalProps> = ({
   onClose,
   onSubmit,
 }) => {
-  const now = new Date(2026, 7, 27); // Aug 27, 2026 (local base date)
   const [currentYear, setCurrentYear] = useState(2026);
   const [currentMonth, setCurrentMonth] = useState(7); // 7 = August (0-indexed)
   const [selectedDayNum, setSelectedDayNum] = useState(28); // Tomorrow (Aug 28)
@@ -77,7 +82,77 @@ export const RequestSpotModal: React.FC<RequestSpotModalProps> = ({
   const [selectedSplit, setSelectedSplit] = useState('Push / Chest Day');
   const [note, setNote] = useState('');
 
-  if (!profile) return null;
+  const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+  const backdropOpacity = useRef(new Animated.Value(0)).current;
+
+  // Single unified entrance animation
+  useEffect(() => {
+    if (visible) {
+      translateY.setValue(SCREEN_HEIGHT);
+      backdropOpacity.setValue(0);
+
+      Animated.parallel([
+        Animated.timing(translateY, {
+          toValue: 0,
+          duration: 240,
+          useNativeDriver: true,
+        }),
+        Animated.timing(backdropOpacity, {
+          toValue: 1,
+          duration: 240,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [visible]);
+
+  const handleDismiss = () => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } catch (e) {}
+
+    Animated.parallel([
+      Animated.timing(translateY, {
+        toValue: SCREEN_HEIGHT,
+        duration: 180,
+        useNativeDriver: true,
+      }),
+      Animated.timing(backdropOpacity, {
+        toValue: 0,
+        duration: 180,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      onClose();
+    });
+  };
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onStartShouldSetPanResponderCapture: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dy > 3,
+      onMoveShouldSetPanResponderCapture: (_, gestureState) => gestureState.dy > 3,
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dy > 0) {
+          translateY.setValue(gestureState.dy);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy > 100 || gestureState.vy > 0.4) {
+          handleDismiss();
+        } else {
+          Animated.spring(translateY, {
+            toValue: 0,
+            bounciness: 4,
+            useNativeDriver: true,
+          }).start();
+        }
+      },
+    })
+  ).current;
+
+  if (!profile || !visible) return null;
 
   // Calendar logic
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
@@ -136,27 +211,35 @@ export const RequestSpotModal: React.FC<RequestSpotModalProps> = ({
       split: selectedSplit,
       note: note.trim(),
     });
-    onClose();
+    handleDismiss();
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide">
-      <View style={styles.overlay}>
-        <View style={styles.sheet}>
-          {/* Header */}
-          <View style={styles.header}>
-            <View style={styles.headerLeft}>
-              <View style={styles.superSpotIcon}>
-                <Zap size={18} color="#FFFFFF" />
+    <Modal visible={visible} transparent animationType="none">
+      <Animated.View style={[styles.overlay, { opacity: backdropOpacity }]}>
+        {/* Backdrop tap to dismiss */}
+        <TouchableWithoutFeedback onPress={handleDismiss}>
+          <View style={styles.backdropTouchArea} />
+        </TouchableWithoutFeedback>
+
+        <Animated.View style={[styles.sheet, { transform: [{ translateY }] }]}>
+          {/* Top Handle / Header with PanResponder for Swipe Down */}
+          <View style={styles.header} {...panResponder.panHandlers}>
+            <View style={styles.dragPill} />
+            <View style={styles.headerContentRow}>
+              <View style={styles.headerLeft}>
+                <View style={styles.superSpotIcon}>
+                  <Zap size={18} color="#FFFFFF" />
+                </View>
+                <View>
+                  <Text style={styles.title}>Propose a Workout Session</Text>
+                  <Text style={styles.subtitle}>Direct spot & training invite to {profile.name}</Text>
+                </View>
               </View>
-              <View>
-                <Text style={styles.title}>Propose a Workout Session</Text>
-                <Text style={styles.subtitle}>Direct spot & training invite to {profile.name}</Text>
-              </View>
+              <TouchableOpacity onPress={handleDismiss} style={styles.closeBtn}>
+                <X size={20} color={COLORS.textSecondary} />
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <X size={20} color={COLORS.textSecondary} />
-            </TouchableOpacity>
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollBody}>
@@ -415,8 +498,8 @@ export const RequestSpotModal: React.FC<RequestSpotModalProps> = ({
               <Text style={styles.sendButtonText}>Send Workout Proposal</Text>
             </TouchableOpacity>
           </ScrollView>
-        </View>
-      </View>
+        </Animated.View>
+      </Animated.View>
     </Modal>
   );
 };
@@ -424,8 +507,11 @@ export const RequestSpotModal: React.FC<RequestSpotModalProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
     justifyContent: 'flex-end',
+  },
+  backdropTouchArea: {
+    ...StyleSheet.absoluteFillObject,
   },
   sheet: {
     backgroundColor: '#11141F',
@@ -436,14 +522,25 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(139, 92, 246, 0.35)',
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: SPACING.xl,
-    paddingTop: SPACING.lg,
+    paddingTop: 10,
     paddingBottom: SPACING.md,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+    alignItems: 'center',
+  },
+  dragPill: {
+    width: 40,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255, 255, 255, 0.35)',
+    marginBottom: 10,
+  },
+  headerContentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
   },
   headerLeft: {
     flexDirection: 'row',
