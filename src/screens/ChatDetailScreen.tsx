@@ -10,6 +10,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Modal,
 } from 'react-native';
 import {
   ArrowLeft,
@@ -22,6 +23,7 @@ import {
   ChevronRight,
   Zap,
   Calendar,
+  X,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { Match, ChatMessage, WorkoutReview, WorkoutSession } from '../types';
@@ -58,6 +60,7 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
   const [checkedIn, setCheckedIn] = useState(match.activeSession?.userCheckedIn || false);
   const [reportModalVisible, setReportModalVisible] = useState(false);
   const [reviewModalVisible, setReviewModalVisible] = useState(false);
+  const [sessionDetailsModalVisible, setSessionDetailsModalVisible] = useState(false);
   const [profileModalVisible, setProfileModalVisible] = useState(false);
   const [requestSpotModalVisible, setRequestSpotModalVisible] = useState(false);
   const [sessionReviewed, setSessionReviewed] = useState(match.activeSession?.reviewed || false);
@@ -175,9 +178,16 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
         </View>
       </View>
 
-      {/* Workout Session Banner with Recurring Streak */}
+      {/* Clean Pinned Workout Session Banner */}
       {currentSession ? (
-        <View style={[styles.workoutBanner, currentSession.isRecurring && styles.workoutBannerRecurring]}>
+        <TouchableOpacity
+          style={[styles.workoutBanner, currentSession.isRecurring && styles.workoutBannerRecurring]}
+          onPress={() => {
+            try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
+            setSessionDetailsModalVisible(true);
+          }}
+          activeOpacity={0.75}
+        >
           <View style={styles.bannerLeft}>
             <View style={[styles.sessionIconCircle, currentSession.isRecurring && styles.sessionIconCircleRecurring]}>
               <Dumbbell size={16} color={currentSession.isRecurring ? '#FBBF24' : COLORS.primary} />
@@ -198,26 +208,14 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
               </Text>
             </View>
           </View>
-          <View style={styles.bannerActionsCol}>
-            <TouchableOpacity
-              style={[styles.checkInBtn, checkedIn && styles.checkInBtnDone]}
-              onPress={() => setCheckedIn(!checkedIn)}
-              activeOpacity={0.8}
-            >
-              <CheckCircle size={13} color="#FFFFFF" style={{ marginRight: 4 }} />
-              <Text style={styles.checkInBtnText}>{checkedIn ? 'Checked In' : 'Check In'}</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.reviewBtn, sessionReviewed && styles.reviewBtnDone]}
-              onPress={() => setReviewModalVisible(true)}
-              activeOpacity={0.8}
-            >
-              <Star size={12} color="#FBBF24" fill={sessionReviewed ? '#FBBF24' : 'none'} style={{ marginRight: 3 }} />
-              <Text style={styles.reviewBtnText}>{sessionReviewed ? 'Reviewed' : 'Review'}</Text>
-            </TouchableOpacity>
+          
+          <View style={styles.managePill}>
+            <Text style={[styles.managePillText, checkedIn && styles.managePillTextDone]}>
+              {checkedIn ? '✓ Arrived' : 'Session'}
+            </Text>
+            <ChevronRight size={13} color={checkedIn ? '#34D399' : COLORS.textSecondary} style={{ marginLeft: 2 }} />
           </View>
-        </View>
+        </TouchableOpacity>
       ) : (
         /* Banner when No Locked-In Session (Only pill is selectable) */
         <View style={[styles.workoutBanner, styles.noSessionBanner]}>
@@ -304,6 +302,108 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
       />
 
       {/* Report & Block User Modal */}
+      
+      {/* Dedicated Session Management Sheet with Check-in & Review */}
+      <Modal visible={sessionDetailsModalVisible} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={styles.modalBackdropTouch}
+            onPress={() => setSessionDetailsModalVisible(false)}
+            activeOpacity={1}
+          />
+          <View style={styles.sessionSheet}>
+            <View style={styles.sheetDragPill} />
+            <View style={styles.sessionSheetHeader}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View style={[styles.sessionIconCircle, { backgroundColor: currentSession?.isRecurring ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.2)' }]}>
+                  <Dumbbell size={18} color={currentSession?.isRecurring ? '#FBBF24' : COLORS.primary} />
+                </View>
+                <View style={{ marginLeft: 10 }}>
+                  <Text style={styles.sheetTitle}>
+                    {currentSession?.isRecurring ? 'Standing Partnership' : 'Scheduled Workout'}
+                  </Text>
+                  <Text style={styles.sheetSub}>with {match.partner.name}</Text>
+                </View>
+              </View>
+              <TouchableOpacity onPress={() => setSessionDetailsModalVisible(false)} style={styles.sheetCloseBtn}>
+                <X size={18} color={COLORS.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Session Info Details */}
+            <View style={styles.sessionDetailBox}>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>TIME & CADENCE</Text>
+                <Text style={styles.detailValue}>
+                  {currentSession?.isRecurring ? currentSession?.recurringDays?.join(' / ') + ' @ ' + currentSession?.scheduledTime : currentSession?.scheduledDate + ' @ ' + currentSession?.scheduledTime}
+                </Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>LOCATION</Text>
+                <Text style={styles.detailValue}>{currentSession?.gymName}</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>SPLIT FOCUS</Text>
+                <Text style={styles.detailValue}>{currentSession?.splitFocus}</Text>
+              </View>
+              {currentSession?.isRecurring && (
+                <View style={[styles.detailRow, { borderBottomWidth: 0 }]}>
+                  <Text style={styles.detailLabel}>CONSISTENCY STREAK</Text>
+                  <Text style={[styles.detailValue, { color: '#FBBF24', fontWeight: '800' }]}>
+                    🔥 {currentSession?.streakWeeks || 3}-Week Streak ({currentSession?.totalSessionsCompleted || 9} completed)
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            {/* Action Buttons: Big, Spacious & Dedicated */}
+            <View style={styles.sheetActionsStack}>
+              {/* Check In Action */}
+              <TouchableOpacity
+                style={[styles.bigCheckInBtn, checkedIn && styles.bigCheckInBtnDone]}
+                onPress={() => {
+                  try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch (e) {}
+                  setCheckedIn(!checkedIn);
+                }}
+                activeOpacity={0.85}
+              >
+                <CheckCircle size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
+                <Text style={styles.bigCheckInBtnText}>
+                  {checkedIn ? '✓ You Are Checked In (I Am Here)' : 'Check In at Front Desk'}
+                </Text>
+              </TouchableOpacity>
+
+              {/* Post Workout Review Action */}
+              <TouchableOpacity
+                style={[styles.bigReviewBtn, sessionReviewed && styles.bigReviewBtnDone]}
+                onPress={() => {
+                  setSessionDetailsModalVisible(false);
+                  setTimeout(() => setReviewModalVisible(true), 200);
+                }}
+                activeOpacity={0.85}
+              >
+                <Star size={18} color={sessionReviewed ? '#FFFFFF' : '#FBBF24'} fill={sessionReviewed ? '#FFFFFF' : 'none'} style={{ marginRight: 8 }} />
+                <Text style={[styles.bigReviewBtnText, sessionReviewed && { color: '#FFFFFF' }]}>
+                  {sessionReviewed ? '✓ Reviewed (' + match.partner.name + ')' : 'Leave Post-Workout Review'}
+                </Text>
+              </TouchableOpacity>
+
+              {/* Reschedule / Propose New Time */}
+              <TouchableOpacity
+                style={styles.rescheduleBtn}
+                onPress={() => {
+                  setSessionDetailsModalVisible(false);
+                  setTimeout(() => setRequestSpotModalVisible(true), 200);
+                }}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.rescheduleBtnText}>🔄 Reschedule / Propose Different Time</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       <ReportUserModal
         visible={reportModalVisible}
         user={match.partner}
@@ -326,6 +426,146 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
 };
 
 const styles = StyleSheet.create({
+  managePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: BORDER_RADIUS.full,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  managePillText: {
+    color: COLORS.textSecondary,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  managePillTextDone: {
+    color: '#34D399',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    justifyContent: 'flex-end',
+  },
+  modalBackdropTouch: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  sessionSheet: {
+    backgroundColor: '#11141F',
+    borderTopLeftRadius: BORDER_RADIUS.xl + 4,
+    borderTopRightRadius: BORDER_RADIUS.xl + 4,
+    padding: SPACING.xl,
+    paddingTop: 10,
+    paddingBottom: 40,
+    borderTopWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  sheetDragPill: {
+    width: 40,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255, 255, 255, 0.35)',
+    alignSelf: 'center',
+    marginBottom: SPACING.md,
+  },
+  sessionSheetHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.lg,
+  },
+  sheetTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: COLORS.textPrimary,
+  },
+  sheetSub: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    marginTop: 1,
+  },
+  sheetCloseBtn: {
+    padding: 6,
+  },
+  sessionDetailBox: {
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.md,
+    marginBottom: SPACING.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.04)',
+  },
+  detailLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: COLORS.textMuted,
+    letterSpacing: 0.5,
+  },
+  detailValue: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+    textAlign: 'right',
+    flex: 1,
+    marginLeft: 10,
+  },
+  sheetActionsStack: {
+    gap: 10,
+  },
+  bigCheckInBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.primary,
+    paddingVertical: 14,
+    borderRadius: BORDER_RADIUS.lg,
+  },
+  bigCheckInBtnDone: {
+    backgroundColor: '#059669',
+  },
+  bigCheckInBtnText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  bigReviewBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    paddingVertical: 14,
+    borderRadius: BORDER_RADIUS.lg,
+    borderWidth: 1,
+    borderColor: '#FBBF24',
+  },
+  bigReviewBtnDone: {
+    backgroundColor: '#D97706',
+    borderColor: '#D97706',
+  },
+  bigReviewBtnText: {
+    color: '#FBBF24',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  rescheduleBtn: {
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  rescheduleBtnText: {
+    color: COLORS.textMuted,
+    fontSize: 12,
+    fontWeight: '600',
+  },
   workoutBannerRecurring: {
     backgroundColor: 'rgba(245, 158, 11, 0.12)',
     borderBottomColor: 'rgba(245, 158, 11, 0.3)',
