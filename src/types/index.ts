@@ -13,17 +13,17 @@ export type Modality =
   | 'General Fitness';
 
 export type WorkoutSplit = 
+  | '5/3/1 Strength'
+  | 'Calisthenics & Skills'
+  | 'CrossFit & WODs'
+  | 'Custom Split'
+  | 'Full Body Hypertrophy' 
+  | 'Functional & HYROX Relays'
+  | 'General Fitness & Toning'
   | 'Glute / Hamstrings / Upper (Lower Focus)'
   | 'Glutes & Quads / Upper Body'
   | 'Push / Pull / Legs (PPL)' 
-  | 'Upper / Lower' 
-  | 'Full Body Hypertrophy' 
-  | 'Functional & HYROX Relays'
-  | 'CrossFit & WODs'
-  | 'Calisthenics & Skills'
-  | 'General Fitness & Toning'
-  | '5/3/1 Strength' 
-  | 'Custom Split';
+  | 'Upper / Lower';
 
 export type TimeSlot = 'early_morning' | 'midday' | 'evening' | 'night';
 
