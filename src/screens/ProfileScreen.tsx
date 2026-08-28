@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Image,
   Switch,
+  Alert,
 } from 'react-native';
 import {
   Shield,
@@ -19,11 +20,17 @@ import {
   MapPin,
   Building2,
   ChevronRight,
+  PauseCircle,
+  PlayCircle,
+  Trash2,
+  AlertCircle,
+  UserCheck,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { CURRENT_USER } from '../data/mockData';
 import { ScheduleMatrix } from '../components/ScheduleMatrix';
 import { GymPickerModal } from '../components/GymPickerModal';
+import { DeleteAccountModal } from '../components/DeleteAccountModal';
 import { COLORS, BORDER_RADIUS, SPACING } from '../constants/theme';
 import { ScheduleDay, TimeSlot } from '../types';
 
@@ -36,6 +43,8 @@ export const ProfileScreen: React.FC = () => {
   const [mySchedule, setMySchedule] = useState<ScheduleDay[]>(CURRENT_USER.schedule);
   const [myGym, setMyGym] = useState(CURRENT_USER.primaryGym);
   const [gymPickerVisible, setGymPickerVisible] = useState(false);
+  const [isAccountPaused, setIsAccountPaused] = useState(false);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
 
   const toggleMen = () => {
     try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
@@ -69,20 +78,64 @@ export const ProfileScreen: React.FC = () => {
     CURRENT_USER.primaryGym = gym;
   };
 
+  const handleTogglePause = () => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } catch (e) {}
+
+    const newPausedState = !isAccountPaused;
+    setIsAccountPaused(newPausedState);
+
+    Alert.alert(
+      newPausedState ? '⏸️ Account Paused' : '▶️ Account Active',
+      newPausedState
+        ? 'Your profile is now hidden from Discovery and Beacon. Your matches, active chats, and lifting history are safely preserved.'
+        : 'Welcome back! Your profile is now visible again to lifters in your area.'
+    );
+  };
+
+  const handleConfirmAccountDelete = () => {
+    console.log('Account deleted permanently for user:', CURRENT_USER.id);
+  };
+
   const userPhotoSrc = typeof CURRENT_USER.photos[0] === 'string' ? { uri: CURRENT_USER.photos[0] } : CURRENT_USER.photos[0];
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
-        <Text style={styles.title}>Fitness DNA & Privacy</Text>
+        <Text style={styles.title}>Fitness DNA & Account</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Paused Account Alert Banner */}
+        {isAccountPaused && (
+          <View style={styles.pausedBanner}>
+            <PauseCircle size={20} color="#FBBF24" style={{ marginRight: 10 }} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.pausedBannerTitle}>Account Is Currently Paused</Text>
+              <Text style={styles.pausedBannerSub}>
+                You are hidden from Discover & Beacon. Matches and chats remain intact.
+              </Text>
+            </View>
+            <TouchableOpacity style={styles.resumeBtn} onPress={handleTogglePause}>
+              <PlayCircle size={14} color="#000000" style={{ marginRight: 4 }} />
+              <Text style={styles.resumeBtnText}>Resume</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* User Profile Card */}
         <View style={styles.userCard}>
           <Image source={userPhotoSrc} style={styles.avatar} />
           <View style={styles.userInfo}>
-            <Text style={styles.userName}>{CURRENT_USER.name}, {CURRENT_USER.age}</Text>
+            <View style={styles.userNameRow}>
+              <Text style={styles.userName}>{CURRENT_USER.name}, {CURRENT_USER.age}</Text>
+              {isAccountPaused && (
+                <View style={styles.pausedBadge}>
+                  <Text style={styles.pausedBadgeText}>PAUSED</Text>
+                </View>
+              )}
+            </View>
             <TouchableOpacity
               style={styles.gymClickPill}
               onPress={() => setGymPickerVisible(true)}
@@ -264,6 +317,55 @@ export const ProfileScreen: React.FC = () => {
             </View>
           </View>
         </View>
+
+        {/* Account Management & Danger Zone */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderRow}>
+            <AlertCircle size={16} color="#EF4444" />
+            <Text style={[styles.sectionHeading, { color: '#EF4444' }]}>ACCOUNT CONTROLS</Text>
+          </View>
+
+          {/* Pause / Snooze Account Card */}
+          <View style={styles.settingCard}>
+            <View style={styles.settingTextCol}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={styles.settingTitle}>Pause Account</Text>
+                {isAccountPaused && (
+                  <View style={styles.activePausePill}>
+                    <Text style={styles.activePauseText}>Active</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.settingDesc}>
+                Take a break from gym matching. Hides your profile from Discovery and Beacon without losing matches, chats, or history.
+              </Text>
+            </View>
+            <Switch
+              value={isAccountPaused}
+              onValueChange={handleTogglePause}
+              trackColor={{ false: '#334155', true: '#FBBF24' }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+
+          {/* Delete Account Button */}
+          <TouchableOpacity
+            style={styles.deleteAccountCard}
+            onPress={() => setDeleteModalVisible(true)}
+            activeOpacity={0.8}
+          >
+            <View style={styles.deleteIconBadge}>
+              <Trash2 size={20} color="#EF4444" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.deleteCardTitle}>Delete Account</Text>
+              <Text style={styles.deleteCardSub}>
+                Permanently erase your Fitness DNA profile, photos, matches, and workout data.
+              </Text>
+            </View>
+            <ChevronRight size={18} color="#EF4444" />
+          </TouchableOpacity>
+        </View>
       </ScrollView>
 
       {/* Change Gym Modal */}
@@ -272,6 +374,13 @@ export const ProfileScreen: React.FC = () => {
         currentGym={myGym}
         onClose={() => setGymPickerVisible(false)}
         onSelectGym={handleSelectNewGym}
+      />
+
+      {/* Delete Account Modal */}
+      <DeleteAccountModal
+        visible={deleteModalVisible}
+        onClose={() => setDeleteModalVisible(false)}
+        onConfirmDelete={handleConfirmAccountDelete}
       />
     </SafeAreaView>
   );
@@ -297,6 +406,40 @@ const styles = StyleSheet.create({
     padding: SPACING.lg,
     paddingBottom: 40,
   },
+  pausedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.35)',
+    marginBottom: SPACING.md,
+  },
+  pausedBannerTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#FBBF24',
+  },
+  pausedBannerSub: {
+    fontSize: 11,
+    color: '#FDE68A',
+    marginTop: 2,
+  },
+  resumeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FBBF24',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: BORDER_RADIUS.full,
+    marginLeft: 8,
+  },
+  resumeBtnText: {
+    color: '#000000',
+    fontWeight: '800',
+    fontSize: 11,
+  },
   userCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -316,10 +459,28 @@ const styles = StyleSheet.create({
   userInfo: {
     flex: 1,
   },
+  userNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   userName: {
     fontSize: 18,
     fontWeight: '800',
     color: COLORS.textPrimary,
+  },
+  pausedBadge: {
+    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginLeft: 6,
+    borderWidth: 1,
+    borderColor: '#FBBF24',
+  },
+  pausedBadgeText: {
+    color: '#FBBF24',
+    fontSize: 9,
+    fontWeight: '800',
   },
   gymClickPill: {
     flexDirection: 'row',
@@ -430,11 +591,24 @@ const styles = StyleSheet.create({
   },
   settingTextCol: {
     flex: 1,
+    marginRight: 8,
   },
   settingTitle: {
     fontSize: 14,
     fontWeight: '700',
     color: COLORS.textPrimary,
+  },
+  activePausePill: {
+    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginLeft: 8,
+  },
+  activePauseText: {
+    color: '#FBBF24',
+    fontSize: 9,
+    fontWeight: '800',
   },
   settingDesc: {
     fontSize: 11,
@@ -513,5 +687,35 @@ const styles = StyleSheet.create({
   tierPillTextActive: {
     color: COLORS.primary,
     fontWeight: '700',
+  },
+  deleteAccountCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(239, 68, 68, 0.05)',
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.2)',
+    marginTop: 4,
+  },
+  deleteIconBadge: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  deleteCardTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#EF4444',
+  },
+  deleteCardSub: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+    lineHeight: 15,
   },
 });
