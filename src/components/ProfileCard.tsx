@@ -125,13 +125,15 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
           {/* Third Row: Split & Reliability Badges */}
           <View style={styles.statsPillRow} pointerEvents="none">
             <View style={styles.splitPill}>
-              <Dumbbell size={12} color={COLORS.primary} style={{ marginRight: 4 }} />
-              <Text style={styles.splitPillText}>{profile.workoutSplit} • {profile.experienceLevel}</Text>
+              <Dumbbell size={12} color={COLORS.primary} style={{ marginRight: 4, flexShrink: 0 }} />
+              <Text style={styles.splitPillText} numberOfLines={1} ellipsizeMode="tail">
+                {profile.workoutSplit} • {profile.experienceLevel}
+              </Text>
             </View>
 
             <View style={styles.reliabilityPill}>
-              <ShieldCheck size={12} color="#FBBF24" style={{ marginRight: 4 }} />
-              <Text style={styles.reliabilityPillText}>{profile.reliabilityScore}%</Text>
+              <ShieldCheck size={12} color="#FBBF24" style={{ marginRight: 4, flexShrink: 0 }} />
+              <Text style={styles.reliabilityPillText}>{profile.reliabilityScore.toFixed(0)}%</Text>
             </View>
           </View>
         </View>
@@ -308,21 +310,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    width: '100%',
   },
   splitPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
     paddingHorizontal: 9,
     paddingVertical: 4,
     borderRadius: BORDER_RADIUS.full,
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.25)',
+    borderColor: 'rgba(16, 185, 129, 0.3)',
+    flex: 1,
+    minWidth: 0,
   },
   splitPillText: {
     color: COLORS.primary,
     fontSize: 11,
     fontWeight: '700',
+    flexShrink: 1,
   },
   reliabilityPill: {
     flexDirection: 'row',
@@ -333,6 +339,7 @@ const styles = StyleSheet.create({
     borderRadius: BORDER_RADIUS.full,
     borderWidth: 1,
     borderColor: 'rgba(245, 158, 11, 0.3)',
+    flexShrink: 0,
   },
   reliabilityPillText: {
     color: '#FBBF24',
