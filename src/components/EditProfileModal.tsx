@@ -22,6 +22,7 @@ import {
   Zap,
   ShieldCheck,
   ChevronRight,
+  ChevronDown,
   Camera,
   Plus,
   Trash2,
@@ -154,6 +155,14 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
       ];
 
   const [benchmarks, setBenchmarks] = useState<BenchmarkItem[]>(initialBenchmarks);
+  
+  // Weight & Number Dialer State
+  const [dialerVisible, setDialerVisible] = useState(false);
+  const [editingBenchmarkIdx, setEditingBenchmarkIdx] = useState<number>(0);
+  const [selectedWeightNumber, setSelectedWeightNumber] = useState<number>(225);
+  const [selectedUnit, setSelectedUnit] = useState<'lbs' | 'kg' | 'reps' | 's'>('lbs');
+  const [selectedScheme, setSelectedScheme] = useState<string>('(3x8)');
+
 
   const setAsPrimaryPhoto = (index: number) => {
     try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch (e) {}
@@ -203,6 +212,69 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
     }));
     setBenchmarks(newItems);
   };
+
+    const openWeightDialer = (idx: number, item: BenchmarkItem) => {
+    try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
+    setEditingBenchmarkIdx(idx);
+
+    // Parse existing number if present
+    const matchNum = item.value.match(/\d+/);
+    if (matchNum) {
+      setSelectedWeightNumber(parseInt(matchNum[0], 10));
+    } else {
+      setSelectedWeightNumber(225);
+    }
+
+    if (item.value.includes('kg')) setSelectedUnit('kg');
+    else if (item.value.includes('rep')) setSelectedUnit('reps');
+    else if (item.value.includes('s') && !item.value.includes('lbs')) setSelectedUnit('s');
+    else setSelectedUnit('lbs');
+
+    if (item.value.includes('3x8')) setSelectedScheme('(3x8)');
+    else if (item.value.includes('3x10')) setSelectedScheme('(3x10)');
+    else if (item.value.includes('5x5')) setSelectedScheme('(5x5)');
+    else if (item.value.includes('1RM')) setSelectedScheme('(1RM)');
+    else if (item.value.includes('reps')) setSelectedScheme('reps');
+    else setSelectedScheme('');
+
+    setDialerVisible(true);
+  };
+
+  const applyWeightFromDialer = () => {
+    try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch (e) {}
+    let formattedVal = '';
+    if (selectedUnit === 'reps') {
+      formattedVal = `${selectedWeightNumber} reps`;
+    } else if (selectedUnit === 's') {
+      formattedVal = `${selectedWeightNumber}s hold`;
+    } else {
+      formattedVal = `${selectedWeightNumber} ${selectedUnit} ${selectedScheme}`.trim();
+    }
+
+    const updated = [...benchmarks];
+    updated[editingBenchmarkIdx].value = formattedVal;
+    setBenchmarks(updated);
+    setDialerVisible(false);
+  };
+
+  const QUICK_WEIGHT_PRESETS = [
+    { label: '45 lbs (Bar)', val: 45 },
+    { label: '95 lbs', val: 95 },
+    { label: '135 lbs (1 Plate)', val: 135 },
+    { label: '185 lbs', val: 185 },
+    { label: '225 lbs (2 Plates)', val: 225 },
+    { label: '275 lbs', val: 275 },
+    { label: '315 lbs (3 Plates)', val: 315 },
+    { label: '365 lbs', val: 365 },
+    { label: '405 lbs (4 Plates)', val: 405 },
+    { label: '495 lbs (5 Plates)', val: 495 },
+    { label: '585 lbs (6 Plates)', val: 585 },
+  ];
+
+  const WEIGHT_NUMBERS: number[] = [];
+  for (let w = 5; w <= 650; w += 5) {
+    WEIGHT_NUMBERS.push(w);
+  }
 
   const updateBenchmarkName = (idx: number, name: string) => {
     const updated = [...benchmarks];
@@ -411,13 +483,16 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                     value={item.name}
                     onChangeText={(val) => updateBenchmarkName(idx, val)}
                   />
-                  <TextInput
-                    style={styles.benchmarkValInput}
-                    placeholder="Working Weight / Stat"
-                    placeholderTextColor={COLORS.textMuted}
-                    value={item.value}
-                    onChangeText={(val) => updateBenchmarkVal(idx, val)}
-                  />
+                  <TouchableOpacity
+                    style={styles.benchmarkSelectorBtn}
+                    onPress={() => openWeightDialer(idx, item)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.benchmarkSelectorVal} numberOfLines={1}>
+                      {item.value || 'Set Weight'}
+                    </Text>
+                    <ChevronDown size={13} color={COLORS.primary} style={{ marginLeft: 4 }} />
+                  </TouchableOpacity>
                 </View>
               ))}
             </View>
@@ -510,6 +585,222 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
 };
 
 const styles = StyleSheet.create({
+  benchmarkSelectorBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: 12,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.25)',
+  },
+  benchmarkSelectorVal: {
+    color: '#34D399',
+    fontSize: 13,
+    fontWeight: '700',
+    flex: 1,
+  },
+  dialerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    justifyContent: 'flex-end',
+  },
+  dialerBackdropTouch: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  dialerSheet: {
+    backgroundColor: '#11141F',
+    borderTopLeftRadius: BORDER_RADIUS.xl + 4,
+    borderTopRightRadius: BORDER_RADIUS.xl + 4,
+    maxHeight: '90%',
+    padding: SPACING.xl,
+    paddingTop: 10,
+    paddingBottom: 40,
+    borderTopWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.35)',
+  },
+  dialerDragPill: {
+    width: 40,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255, 255, 255, 0.35)',
+    alignSelf: 'center',
+    marginBottom: SPACING.md,
+  },
+  dialerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+  },
+  dialerTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: COLORS.textPrimary,
+  },
+  dialerSub: {
+    fontSize: 12,
+    color: COLORS.primary,
+    fontWeight: '700',
+    marginTop: 2,
+  },
+  dialerCloseBtn: {
+    padding: 6,
+  },
+  dialerDisplayCard: {
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.lg,
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.3)',
+  },
+  dialerDisplayValue: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#34D399',
+    letterSpacing: 0.5,
+  },
+  dialerDisplaySub: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.textMuted,
+    marginTop: 2,
+    letterSpacing: 0.5,
+  },
+  unitSelectorRow: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: BORDER_RADIUS.md,
+    padding: 3,
+    gap: 4,
+    marginBottom: SPACING.md,
+  },
+  unitBtn: {
+    flex: 1,
+    paddingVertical: 7,
+    alignItems: 'center',
+    borderRadius: BORDER_RADIUS.sm,
+  },
+  unitBtnActive: {
+    backgroundColor: COLORS.primary,
+  },
+  unitBtnText: {
+    color: COLORS.textMuted,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  unitBtnTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '900',
+  },
+  dialerSectionLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: COLORS.textMuted,
+    letterSpacing: 0.5,
+    marginBottom: 6,
+    marginTop: 4,
+  },
+  numberWheelContent: {
+    gap: 8,
+    paddingVertical: 4,
+    marginBottom: SPACING.md,
+  },
+  numberCell: {
+    width: 60,
+    height: 50,
+    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  numberCellSelected: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  numberCellText: {
+    color: COLORS.textSecondary,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  numberCellTextSelected: {
+    color: '#FFFFFF',
+    fontWeight: '900',
+  },
+  presetJumpRow: {
+    gap: 8,
+    paddingVertical: 4,
+    marginBottom: SPACING.md,
+  },
+  presetJumpBtn: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: BORDER_RADIUS.full,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  presetJumpBtnActive: {
+    backgroundColor: 'rgba(16, 185, 129, 0.25)',
+    borderColor: COLORS.primary,
+  },
+  presetJumpText: {
+    color: COLORS.textSecondary,
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  presetJumpTextActive: {
+    color: '#34D399',
+    fontWeight: '800',
+  },
+  schemeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: SPACING.lg,
+  },
+  schemeBtn: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  schemeBtnActive: {
+    backgroundColor: 'rgba(16, 185, 129, 0.25)',
+    borderColor: COLORS.primary,
+  },
+  schemeBtnText: {
+    color: COLORS.textSecondary,
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  schemeBtnTextActive: {
+    color: '#34D399',
+    fontWeight: '800',
+  },
+  applyWeightBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.primary,
+    paddingVertical: 14,
+    borderRadius: BORDER_RADIUS.lg,
+    marginTop: 4,
+  },
+  applyWeightBtnText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800',
+  },
   section: {
     marginBottom: SPACING.lg,
   },
