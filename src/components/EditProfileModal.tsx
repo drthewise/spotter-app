@@ -23,10 +23,12 @@ import {
   ShieldCheck,
   ChevronRight,
   Camera,
+  Plus,
+  Trash2,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { COLORS, BORDER_RADIUS, SPACING } from '../constants/theme';
-import { UserProfile, ExperienceLevel, Modality, WorkoutSplit } from '../types';
+import { UserProfile, ExperienceLevel, Modality, WorkoutSplit, BenchmarkItem } from '../types';
 
 interface EditProfileModalProps {
   visible: boolean;
@@ -36,10 +38,15 @@ interface EditProfileModalProps {
 }
 
 const SPLIT_OPTIONS: WorkoutSplit[] = [
+  'Glute / Hamstrings / Upper (Lower Focus)',
+  'Glutes & Quads / Upper Body',
   'Push / Pull / Legs (PPL)',
   'Upper / Lower',
-  'Full Body',
-  'Bro Split',
+  'Full Body Hypertrophy',
+  'Functional & HYROX Relays',
+  'CrossFit & WODs',
+  'Calisthenics & Skills',
+  'General Fitness & Toning',
   '5/3/1 Strength',
   'Custom Split',
 ];
@@ -52,13 +59,15 @@ const EXPERIENCE_OPTIONS: ExperienceLevel[] = [
 ];
 
 const MODALITY_OPTIONS: Modality[] = [
-  'Powerlifting',
+  'Glute & Lower Body',
   'Bodybuilding',
-  'CrossFit',
+  'Powerlifting',
   'HYROX',
+  'CrossFit',
   'Calisthenics',
   'Olympic Lifting',
   'Running / Cardio',
+  'Pilates & Mobility',
   'General Fitness',
 ];
 
@@ -66,7 +75,56 @@ const SPOTTING_STYLES = [
   'Lift-off only, touch only on failure',
   'Hands hovering near bar (guided spot)',
   'Assisted forced reps on last set',
-  'Form check & audio hype motivation',
+  'Hip thrust bar setup & rack loading',
+  'Form check, pacing & audio hype motivation',
+];
+
+const BENCHMARK_PRESETS = [
+  {
+    category: '🍑 Glute & Lower Body',
+    items: [
+      { name: 'Barbell Hip Thrust', value: '225 lbs (3x10)' },
+      { name: 'Barbell / DB RDL', value: '165 lbs' },
+      { name: 'Bulgarian Split Squat', value: '35 lb DBs' },
+      { name: 'Leg Press', value: '270 lbs' },
+    ],
+  },
+  {
+    category: '🏋️ Barbell Compounds',
+    items: [
+      { name: 'Flat Barbell Bench', value: '225 lbs (3x8)' },
+      { name: 'Barbell Squat', value: '315 lbs' },
+      { name: 'Barbell Deadlift', value: '405 lbs' },
+      { name: 'Incline DB Press', value: '90 lb DBs' },
+    ],
+  },
+  {
+    category: '⚡ HYROX & Functional',
+    items: [
+      { name: '1k Running Pace', value: '4:30/km' },
+      { name: 'Sled Push (152kg)', value: '100m in 1:45' },
+      { name: 'SkiErg 500m Split', value: '1:54/500m' },
+      { name: 'Wall Balls', value: '14 lb (40 reps)' },
+    ],
+  },
+  {
+    category: '🤸 Calisthenics & Bodyweight',
+    items: [
+      { name: 'Max Strict Pull-ups', value: '16 reps' },
+      { name: 'Weighted Dips', value: '+45 lbs (3x8)' },
+      { name: 'Handstand Push-ups', value: '8 reps' },
+      { name: 'L-Sit Hold', value: '30s hold' },
+    ],
+  },
+  {
+    category: '✨ General Fitness & DBs',
+    items: [
+      { name: 'Goblet Squat', value: '45 lbs' },
+      { name: 'Dumbbell Chest Press', value: '30 lb DBs' },
+      { name: 'Lat Pulldown', value: '90 lbs' },
+      { name: 'Dumbbell RDL', value: '40 lb DBs' },
+    ],
+  },
 ];
 
 export const EditProfileModal: React.FC<EditProfileModalProps> = ({
@@ -82,11 +140,39 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const [spottingStyle, setSpottingStyle] = useState(user.spottingStyle);
   const [gymEnergy, setGymEnergy] = useState(user.gymEnergy);
   
-  // Strength Benchmarks
-  const [bench, setBench] = useState(user.strengthBenchmarks?.benchWorkingWeight || '225 lbs (3x8)');
-  const [squat, setSquat] = useState(user.strengthBenchmarks?.squatWorkingWeight || '315 lbs');
-  const [deadlift, setDeadlift] = useState(user.strengthBenchmarks?.deadliftWorkingWeight || '405 lbs');
-  const [dumbbell, setDumbbell] = useState(user.strengthBenchmarks?.dumbbellPress || '90 lb DBs');
+  // Custom Benchmarks
+  const initialBenchmarks: BenchmarkItem[] = user.strengthBenchmarks?.benchmarks && user.strengthBenchmarks.benchmarks.length > 0
+    ? user.strengthBenchmarks.benchmarks
+    : [
+        { id: 'b1', name: 'Barbell Hip Thrust / Bench', value: '225 lbs' },
+        { id: 'b2', name: 'Squat / Leg Press', value: '315 lbs' },
+        { id: 'b3', name: 'Deadlift / RDL', value: '365 lbs' },
+        { id: 'b4', name: 'Dumbbell Working Weight', value: '50 lb DBs' },
+      ];
+
+  const [benchmarks, setBenchmarks] = useState<BenchmarkItem[]>(initialBenchmarks);
+
+  const applyPreset = (preset: typeof BENCHMARK_PRESETS[0]) => {
+    try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch (e) {}
+    const newItems = preset.items.map((item, idx) => ({
+      id: 'b_' + Date.now() + '_' + idx,
+      name: item.name,
+      value: item.value,
+    }));
+    setBenchmarks(newItems);
+  };
+
+  const updateBenchmarkName = (idx: number, name: string) => {
+    const updated = [...benchmarks];
+    updated[idx].name = name;
+    setBenchmarks(updated);
+  };
+
+  const updateBenchmarkVal = (idx: number, value: string) => {
+    const updated = [...benchmarks];
+    updated[idx].value = value;
+    setBenchmarks(updated);
+  };
 
   const toggleModality = (m: Modality) => {
     try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
@@ -109,10 +195,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
       spottingStyle,
       gymEnergy,
       strengthBenchmarks: {
-        benchWorkingWeight: bench,
-        squatWorkingWeight: squat,
-        deadliftWorkingWeight: deadlift,
-        dumbbellPress: dumbbell,
+        benchmarks,
       },
     });
     onClose();
@@ -158,63 +241,13 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
             <Text style={styles.sectionHeader}>BIO & TRAINING FOCUS</Text>
             <TextInput
               style={styles.bioInput}
-              placeholder="Describe your training goals, favorite compounds, or what you want in a spotter..."
+              placeholder="Describe your training focus, favorite exercises, or what you look for in a spotter..."
               placeholderTextColor={COLORS.textMuted}
               multiline
               numberOfLines={3}
               value={bio}
               onChangeText={setBio}
             />
-
-            {/* Strength Benchmarks ("Lifting DNA") */}
-            <Text style={styles.sectionHeader}>WORKING WEIGHTS & BENCHMARKS</Text>
-            <View style={styles.strengthCard}>
-              <View style={styles.strengthRow}>
-                <View style={styles.strengthCol}>
-                  <Text style={styles.strengthLabel}>Flat Barbell Bench</Text>
-                  <TextInput
-                    style={styles.strengthInput}
-                    placeholder="e.g. 225 lbs (3x8)"
-                    placeholderTextColor={COLORS.textMuted}
-                    value={bench}
-                    onChangeText={setBench}
-                  />
-                </View>
-                <View style={styles.strengthCol}>
-                  <Text style={styles.strengthLabel}>Barbell Squat</Text>
-                  <TextInput
-                    style={styles.strengthInput}
-                    placeholder="e.g. 315 lbs"
-                    placeholderTextColor={COLORS.textMuted}
-                    value={squat}
-                    onChangeText={setSquat}
-                  />
-                </View>
-              </View>
-
-              <View style={styles.strengthRow}>
-                <View style={styles.strengthCol}>
-                  <Text style={styles.strengthLabel}>Barbell Deadlift</Text>
-                  <TextInput
-                    style={styles.strengthInput}
-                    placeholder="e.g. 405 lbs"
-                    placeholderTextColor={COLORS.textMuted}
-                    value={deadlift}
-                    onChangeText={setDeadlift}
-                  />
-                </View>
-                <View style={styles.strengthCol}>
-                  <Text style={styles.strengthLabel}>Incline DB Press</Text>
-                  <TextInput
-                    style={styles.strengthInput}
-                    placeholder="e.g. 90 lb DBs"
-                    placeholderTextColor={COLORS.textMuted}
-                    value={dumbbell}
-                    onChangeText={setDumbbell}
-                  />
-                </View>
-              </View>
-            </View>
 
             {/* Workout Split */}
             <Text style={styles.sectionHeader}>WORKOUT SPLIT</Text>
@@ -236,6 +269,43 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                   </TouchableOpacity>
                 );
               })}
+            </View>
+
+            {/* Working Weights & Benchmarks */}
+            <Text style={styles.sectionHeader}>TRAINING BENCHMARKS & WORKING STATS</Text>
+            
+            {/* Preset Picker */}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.presetScroll}>
+              {BENCHMARK_PRESETS.map((preset) => (
+                <TouchableOpacity
+                  key={preset.category}
+                  style={styles.presetBtn}
+                  onPress={() => applyPreset(preset)}
+                >
+                  <Text style={styles.presetBtnText}>{preset.category}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <View style={styles.benchmarksContainer}>
+              {benchmarks.map((item, idx) => (
+                <View key={item.id || idx} style={styles.benchmarkCard}>
+                  <TextInput
+                    style={styles.benchmarkNameInput}
+                    placeholder="Lift / Exercise Name"
+                    placeholderTextColor={COLORS.textMuted}
+                    value={item.name}
+                    onChangeText={(val) => updateBenchmarkName(idx, val)}
+                  />
+                  <TextInput
+                    style={styles.benchmarkValInput}
+                    placeholder="Working Weight / Stat"
+                    placeholderTextColor={COLORS.textMuted}
+                    value={item.value}
+                    onChangeText={(val) => updateBenchmarkVal(idx, val)}
+                  />
+                </View>
+              ))}
             </View>
 
             {/* Experience Level */}
@@ -261,7 +331,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
             </View>
 
             {/* Training Modalities */}
-            <Text style={styles.sectionHeader}>MODALITIES & DISCIPLINES</Text>
+            <Text style={styles.sectionHeader}>DISCIPLINES & MODALITIES</Text>
             <View style={styles.pillsRow}>
               {MODALITY_OPTIONS.map((m) => {
                 const isSelected = primaryModalities.includes(m);
@@ -280,7 +350,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
             </View>
 
             {/* Preferred Spotting Style */}
-            <Text style={styles.sectionHeader}>SPOTTING PREFERENCE</Text>
+            <Text style={styles.sectionHeader}>SPOTTING & GYM PREFERENCE</Text>
             <View style={styles.optionsList}>
               {SPOTTING_STYLES.map((style) => {
                 const isSelected = spottingStyle === style;
@@ -308,7 +378,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
             <Text style={styles.sectionHeader}>GYM VIBE / ENERGY</Text>
             <TextInput
               style={styles.singleInput}
-              placeholder="e.g. Headphones on, locked in, high intensity"
+              placeholder="e.g. Early mornings, aesthetic lifting, hype motivation"
               placeholderTextColor={COLORS.textMuted}
               value={gymEnergy}
               onChangeText={setGymEnergy}
@@ -316,7 +386,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
             {/* Save Button */}
             <TouchableOpacity style={styles.bottomSaveBtn} onPress={handleSave}>
-              <Text style={styles.bottomSaveText}>Save Profile Changes</Text>
+              <Text style={styles.bottomSaveText}>Save Fitness Profile</Text>
             </TouchableOpacity>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -418,37 +488,58 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
   },
-  strengthCard: {
+  presetScroll: {
+    gap: 6,
+    marginBottom: SPACING.sm,
+  },
+  presetBtn: {
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: BORDER_RADIUS.full,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.25)',
+  },
+  presetBtnText: {
+    color: COLORS.primary,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  benchmarksContainer: {
+    gap: 6,
+  },
+  benchmarkCard: {
+    flexDirection: 'row',
     backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    borderRadius: BORDER_RADIUS.lg,
-    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    gap: 8,
+  },
+  benchmarkNameInput: {
+    flex: 1.2,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    borderRadius: BORDER_RADIUS.sm,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 7,
+    color: COLORS.textPrimary,
+    fontSize: 12,
+    fontWeight: '600',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.06)',
   },
-  strengthRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 8,
-  },
-  strengthCol: {
+  benchmarkValInput: {
     flex: 1,
-  },
-  strengthLabel: {
-    fontSize: 10,
-    color: COLORS.textSecondary,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  strengthInput: {
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    borderRadius: BORDER_RADIUS.md,
-    paddingHorizontal: SPACING.sm + 4,
-    paddingVertical: 8,
+    borderRadius: BORDER_RADIUS.sm,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 7,
     color: COLORS.primary,
     fontSize: 12,
     fontWeight: '700',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: 'rgba(255, 255, 255, 0.06)',
   },
   pillsRow: {
     flexDirection: 'row',

@@ -3,18 +3,25 @@ export type ExperienceLevel = 'Beginner' | 'Intermediate' | 'Advanced' | 'Elite 
 export type Modality = 
   | 'Bodybuilding' 
   | 'Powerlifting' 
+  | 'Glute & Lower Body'
   | 'CrossFit' 
   | 'HYROX' 
   | 'Calisthenics' 
   | 'Olympic Lifting' 
   | 'Running / Cardio' 
+  | 'Pilates & Mobility'
   | 'General Fitness';
 
 export type WorkoutSplit = 
+  | 'Glute / Hamstrings / Upper (Lower Focus)'
+  | 'Glutes & Quads / Upper Body'
   | 'Push / Pull / Legs (PPL)' 
   | 'Upper / Lower' 
-  | 'Full Body' 
-  | 'Bro Split' 
+  | 'Full Body Hypertrophy' 
+  | 'Functional & HYROX Relays'
+  | 'CrossFit & WODs'
+  | 'Calisthenics & Skills'
+  | 'General Fitness & Toning'
   | '5/3/1 Strength' 
   | 'Custom Split';
 
@@ -36,12 +43,19 @@ export interface PrivacySettings {
   distanceFuzzing: boolean;
 }
 
+export interface BenchmarkItem {
+  id: string;
+  name: string; // e.g. "Barbell Hip Thrust", "Flat Bench", "Sled Push", "Max Pull-ups"
+  value: string; // e.g. "275 lbs", "225 lbs (3x8)", "150 kg", "15 reps"
+}
+
 export interface StrengthBenchmarks {
-  benchWorkingWeight?: string; // e.g. "225 lbs"
-  squatWorkingWeight?: string; // e.g. "315 lbs"
-  deadliftWorkingWeight?: string; // e.g. "405 lbs"
-  dumbbellPress?: string; // e.g. "90 lb DBs"
-  tierCategory?: 'Beginner (<135)' | 'Intermediate (135–225)' | 'Advanced (225–315)' | 'Elite (315+)';
+  category?: 'Glute & Lower Body' | 'Barbell Compounds' | 'HYROX & Functional' | 'Calisthenics' | 'General Fitness';
+  benchmarks: BenchmarkItem[];
+  benchWorkingWeight?: string;
+  squatWorkingWeight?: string;
+  deadliftWorkingWeight?: string;
+  dumbbellPress?: string;
 }
 
 export interface NotificationPreferences {
@@ -158,7 +172,7 @@ export interface WorkoutReview {
   id: string;
   partnerId: string;
   partnerName: string;
-  rating: number; // 1-5
+  rating: number;
   badges: string[];
   notes?: string;
   createdAt: string;

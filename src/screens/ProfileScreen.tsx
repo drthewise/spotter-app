@@ -182,34 +182,25 @@ export const ProfileScreen: React.FC = () => {
           </View>
         </View>
 
+        
         {/* Working Weights & Strength Benchmarks */}
-        {benchmarks && (
+        {benchmarks && benchmarks.benchmarks && benchmarks.benchmarks.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeaderRow}>
               <Dumbbell size={16} color={COLORS.primary} />
-              <Text style={styles.sectionHeading}>LIFTING BENCHMARKS & WORKING WEIGHTS</Text>
+              <Text style={styles.sectionHeading}>TRAINING BENCHMARKS & WORKING STATS</Text>
               <TouchableOpacity onPress={() => setEditProfileVisible(true)} style={{ marginLeft: 'auto' }}>
                 <Text style={{ color: COLORS.primary, fontSize: 11, fontWeight: '700' }}>Edit</Text>
               </TouchableOpacity>
             </View>
 
             <View style={styles.benchmarksGrid}>
-              <View style={styles.benchmarkBox}>
-                <Text style={styles.benchmarkLabel}>BENCH PRESS</Text>
-                <Text style={styles.benchmarkVal}>{benchmarks.benchWorkingWeight || '225 lbs'}</Text>
-              </View>
-              <View style={styles.benchmarkBox}>
-                <Text style={styles.benchmarkLabel}>SQUAT</Text>
-                <Text style={styles.benchmarkVal}>{benchmarks.squatWorkingWeight || '315 lbs'}</Text>
-              </View>
-              <View style={styles.benchmarkBox}>
-                <Text style={styles.benchmarkLabel}>DEADLIFT</Text>
-                <Text style={styles.benchmarkVal}>{benchmarks.deadliftWorkingWeight || '405 lbs'}</Text>
-              </View>
-              <View style={styles.benchmarkBox}>
-                <Text style={styles.benchmarkLabel}>INCLINE DBs</Text>
-                <Text style={styles.benchmarkVal}>{benchmarks.dumbbellPress || '90 lb DBs'}</Text>
-              </View>
+              {benchmarks.benchmarks.map((b) => (
+                <View key={b.id || b.name} style={styles.benchmarkBox}>
+                  <Text style={styles.benchmarkLabel} numberOfLines={1}>{b.name.toUpperCase()}</Text>
+                  <Text style={styles.benchmarkVal} numberOfLines={1}>{b.value}</Text>
+                </View>
+              ))}
             </View>
           </View>
         )}

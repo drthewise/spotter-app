@@ -119,27 +119,18 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
               </View>
             </View>
 
+            
             {/* Working Weights & Strength Benchmarks */}
-            {benchmarks && (
+            {benchmarks && benchmarks.benchmarks && benchmarks.benchmarks.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>WORKING WEIGHTS & BENCHMARKS</Text>
+                <Text style={styles.sectionTitle}>TRAINING BENCHMARKS & WORKING STATS</Text>
                 <View style={styles.benchmarksGrid}>
-                  <View style={styles.benchmarkBox}>
-                    <Text style={styles.benchmarkLabel}>BENCH</Text>
-                    <Text style={styles.benchmarkVal}>{benchmarks.benchWorkingWeight || 'N/A'}</Text>
-                  </View>
-                  <View style={styles.benchmarkBox}>
-                    <Text style={styles.benchmarkLabel}>SQUAT</Text>
-                    <Text style={styles.benchmarkVal}>{benchmarks.squatWorkingWeight || 'N/A'}</Text>
-                  </View>
-                  <View style={styles.benchmarkBox}>
-                    <Text style={styles.benchmarkLabel}>DEADLIFT</Text>
-                    <Text style={styles.benchmarkVal}>{benchmarks.deadliftWorkingWeight || 'N/A'}</Text>
-                  </View>
-                  <View style={styles.benchmarkBox}>
-                    <Text style={styles.benchmarkLabel}>DB PRESS</Text>
-                    <Text style={styles.benchmarkVal}>{benchmarks.dumbbellPress || 'N/A'}</Text>
-                  </View>
+                  {benchmarks.benchmarks.map((b) => (
+                    <View key={b.id || b.name} style={styles.benchmarkBox}>
+                      <Text style={styles.benchmarkLabel} numberOfLines={1}>{b.name.toUpperCase()}</Text>
+                      <Text style={styles.benchmarkVal} numberOfLines={1}>{b.value}</Text>
+                    </View>
+                  ))}
                 </View>
               </View>
             )}
