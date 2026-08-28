@@ -49,6 +49,7 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
   const isSameGym = profile.primaryGym.brand === CURRENT_USER.primaryGym.brand;
   const avatarPhoto = profile.photos[1] || profile.photos[0];
   const avatarSource = typeof avatarPhoto === 'string' ? { uri: avatarPhoto } : avatarPhoto;
+  const benchmarks = profile.strengthBenchmarks;
 
   return (
     <Modal visible={visible} animationType="slide" transparent={true}>
@@ -117,6 +118,31 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
                 <Text style={styles.statBoxSub}>{profile.experienceLevel}</Text>
               </View>
             </View>
+
+            {/* Working Weights & Strength Benchmarks */}
+            {benchmarks && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>WORKING WEIGHTS & BENCHMARKS</Text>
+                <View style={styles.benchmarksGrid}>
+                  <View style={styles.benchmarkBox}>
+                    <Text style={styles.benchmarkLabel}>BENCH</Text>
+                    <Text style={styles.benchmarkVal}>{benchmarks.benchWorkingWeight || 'N/A'}</Text>
+                  </View>
+                  <View style={styles.benchmarkBox}>
+                    <Text style={styles.benchmarkLabel}>SQUAT</Text>
+                    <Text style={styles.benchmarkVal}>{benchmarks.squatWorkingWeight || 'N/A'}</Text>
+                  </View>
+                  <View style={styles.benchmarkBox}>
+                    <Text style={styles.benchmarkLabel}>DEADLIFT</Text>
+                    <Text style={styles.benchmarkVal}>{benchmarks.deadliftWorkingWeight || 'N/A'}</Text>
+                  </View>
+                  <View style={styles.benchmarkBox}>
+                    <Text style={styles.benchmarkLabel}>DB PRESS</Text>
+                    <Text style={styles.benchmarkVal}>{benchmarks.dumbbellPress || 'N/A'}</Text>
+                  </View>
+                </View>
+              </View>
+            )}
 
             {/* About / Bio */}
             <View style={styles.section}>
@@ -342,6 +368,32 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     fontSize: 11,
     marginTop: 2,
+    textAlign: 'center',
+  },
+  benchmarksGrid: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  benchmarkBox: {
+    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderRadius: BORDER_RADIUS.md,
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  benchmarkLabel: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: COLORS.textMuted,
+    marginBottom: 3,
+  },
+  benchmarkVal: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.primary,
     textAlign: 'center',
   },
   section: {

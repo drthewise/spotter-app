@@ -11,10 +11,11 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { ArrowLeft, Dumbbell, Send, ShieldCheck, CheckCircle, ShieldAlert } from 'lucide-react-native';
-import { Match, ChatMessage } from '../types';
+import { ArrowLeft, Dumbbell, Send, ShieldCheck, CheckCircle, ShieldAlert, Star } from 'lucide-react-native';
+import { Match, ChatMessage, WorkoutReview } from '../types';
 import { COLORS, BORDER_RADIUS, SPACING } from '../constants/theme';
 import { ReportUserModal } from '../components/ReportUserModal';
+import { PostWorkoutReviewModal } from '../components/PostWorkoutReviewModal';
 import { CURRENT_USER } from '../data/mockData';
 
 interface ChatDetailScreenProps {
@@ -41,10 +42,13 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
   const [inputText, setInputText] = useState('');
   const [checkedIn, setCheckedIn] = useState(match.activeSession?.userCheckedIn || false);
   const [reportModalVisible, setReportModalVisible] = useState(false);
+  const [reviewModalVisible, setReviewModalVisible] = useState(false);
+  const [sessionReviewed, setSessionReviewed] = useState(match.activeSession?.reviewed || false);
 
   useEffect(() => {
     setMessages(getInitialMessages(match));
     setCheckedIn(match.activeSession?.userCheckedIn || false);
+    setSessionReviewed(match.activeSession?.reviewed || false);
     setInputText('');
   }, [match.id]);
 
@@ -60,6 +64,18 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
 
     setMessages((prev) => [...prev, newMsg]);
     setInputText('');
+  };
+
+  const handleReviewSubmitted = (review: WorkoutReview) => {
+    setSessionReviewed(true);
+    const systemMsg: ChatMessage = {
+      id: 'sys_' + Date.now(),
+      senderId: 'system',
+      text: '⭐️ Workout completed! You gave ' + match.partner.name + ' a 5-star review (' + review.badges.join(', ') + ').',
+      timestamp: 'Just now',
+      isSystemEvent: true,
+    };
+    setMessages((prev) => [...prev, systemMsg]);
   };
 
   const partnerPhotoSrc = typeof match.partner.photos[0] === 'string' ? { uri: match.partner.photos[0] } : match.partner.photos[0];
@@ -103,13 +119,23 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
               <Text style={styles.bannerSub}>{session.splitFocus} • {session.gymName}</Text>
             </View>
           </View>
-          <TouchableOpacity
-            style={[styles.checkInBtn, checkedIn && styles.checkInBtnDone]}
-            onPress={() => setCheckedIn(!checkedIn)}
-          >
-            <CheckCircle size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
-            <Text style={styles.checkInBtnText}>{checkedIn ? 'Checked In' : 'I Am Here'}</Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: 6 }}>
+            <TouchableOpacity
+              style={[styles.checkInBtn, checkedIn && styles.checkInBtnDone]}
+              onPress={() => setCheckedIn(!checkedIn)}
+            >
+              <CheckCircle size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
+              <Text style={styles.checkInBtnText}>{checkedIn ? 'Checked In' : 'I Am Here'}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.reviewBtn, sessionReviewed && styles.reviewBtnDone]}
+              onPress={() => setReviewModalVisible(true)}
+            >
+              <Star size={13} color="#FFFFFF" style={{ marginRight: 3 }} />
+              <Text style={styles.reviewBtnText}>{sessionReviewed ? 'Reviewed' : 'Review'}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       ) : (
         <View style={[styles.workoutBanner, styles.noSessionBanner]}>
@@ -126,6 +152,14 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
       {/* Messages List */}
       <ScrollView contentContainerStyle={styles.messagesList} showsVerticalScrollIndicator={false}>
         {messages.map((msg) => {
+          if (msg.isSystemEvent) {
+            return (
+              <View key={msg.id} style={styles.systemMessageContainer}>
+                <Text style={styles.systemMessageText}>{msg.text}</Text>
+              </View>
+            );
+          }
+
           const isMe = msg.senderId === CURRENT_USER.id;
           return (
             <View
@@ -168,6 +202,14 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
           setReportModalVisible(false);
           onBack();
         }}
+      />
+
+      {/* Post-Workout Review Modal */}
+      <PostWorkoutReviewModal
+        visible={reviewModalVisible}
+        partner={match.partner}
+        onClose={() => setReviewModalVisible(false)}
+        onSubmitReview={handleReviewSubmitted}
       />
     </SafeAreaView>
   );
@@ -274,7 +316,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.primary,
-    paddingHorizontal: 10,
+    paddingHorizontal: 9,
     paddingVertical: 6,
     borderRadius: BORDER_RADIUS.full,
   },
@@ -283,12 +325,45 @@ const styles = StyleSheet.create({
   },
   checkInBtnText: {
     color: '#FFFFFF',
-    fontSize: 11,
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  reviewBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+    paddingHorizontal: 9,
+    paddingVertical: 6,
+    borderRadius: BORDER_RADIUS.full,
+    borderWidth: 1,
+    borderColor: '#FBBF24',
+  },
+  reviewBtnDone: {
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  reviewBtnText: {
+    color: '#FBBF24',
+    fontSize: 10,
     fontWeight: '700',
   },
   messagesList: {
     padding: SPACING.lg,
     paddingBottom: 20,
+  },
+  systemMessageContainer: {
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.sm + 2,
+    marginVertical: SPACING.xs,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.25)',
+  },
+  systemMessageText: {
+    color: '#FDE68A',
+    fontSize: 12,
+    textAlign: 'center',
+    lineHeight: 16,
   },
   messageBubble: {
     maxWidth: '80%',

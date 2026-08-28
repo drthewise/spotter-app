@@ -29,10 +29,27 @@ export type GymVisibilityTier = 'exact' | 'brand_only' | 'match_only' | 'hidden'
 
 export interface PrivacySettings {
   ghostMode: boolean;
-  womenOnlyMode: boolean;
+  womenOnlyMode?: boolean;
+  targetGenders?: ('male' | 'female' | 'non-binary')[];
   gymVisibility: GymVisibilityTier;
   scheduleVisibility: 'full' | 'overlap_only' | 'match_only';
   distanceFuzzing: boolean;
+}
+
+export interface StrengthBenchmarks {
+  benchWorkingWeight?: string; // e.g. "225 lbs"
+  squatWorkingWeight?: string; // e.g. "315 lbs"
+  deadliftWorkingWeight?: string; // e.g. "405 lbs"
+  dumbbellPress?: string; // e.g. "90 lb DBs"
+  tierCategory?: 'Beginner (<135)' | 'Intermediate (135–225)' | 'Advanced (225–315)' | 'Elite (315+)';
+}
+
+export interface NotificationPreferences {
+  spotRequests: boolean;
+  beaconProximityAlerts: boolean;
+  chatMessages: boolean;
+  workoutReminders: boolean;
+  emergencyPulse: boolean;
 }
 
 export interface UserProfile {
@@ -60,6 +77,7 @@ export interface UserProfile {
   gymEnergy: string;
   intent: 'platonic_only' | 'open_to_dating';
   
+  strengthBenchmarks?: StrengthBenchmarks;
   reliabilityScore: number;
   completedWorkoutsCount: number;
   
@@ -90,11 +108,13 @@ export interface WorkoutSession {
   userCheckedIn: boolean;
   partnerCheckedIn: boolean;
   status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+  reviewed?: boolean;
 }
 
 export interface ChatMessage {
   id: string;
   senderId: string;
+  senderName?: string;
   text: string;
   timestamp: string;
   isSystemEvent?: boolean;
@@ -110,4 +130,36 @@ export interface Match {
   activeSession?: WorkoutSession;
   scheduleOverlapScore: number;
   messages?: ChatMessage[];
+}
+
+export interface GymCrew {
+  id: string;
+  name: string;
+  tagline: string;
+  gymName: string;
+  modality: Modality;
+  splitFocus: string;
+  memberCount: number;
+  members: {
+    id: string;
+    name: string;
+    photo: any;
+    role: 'Leader' | 'Member';
+  }[];
+  nextSession?: {
+    date: string;
+    time: string;
+    title: string;
+  };
+  messages: ChatMessage[];
+}
+
+export interface WorkoutReview {
+  id: string;
+  partnerId: string;
+  partnerName: string;
+  rating: number; // 1-5
+  badges: string[];
+  notes?: string;
+  createdAt: string;
 }

@@ -1,4 +1,4 @@
-import { UserProfile, GymBeacon, Match } from '../types';
+import { UserProfile, GymBeacon, Match, GymCrew } from '../types';
 import { PROFILE_IMAGES } from '../constants/images';
 
 export const CURRENT_USER: UserProfile = {
@@ -33,6 +33,13 @@ export const CURRENT_USER: UserProfile = {
   intent: 'platonic_only',
   reliabilityScore: 98.5,
   completedWorkoutsCount: 34,
+  strengthBenchmarks: {
+    benchWorkingWeight: '225 lbs (3x8)',
+    squatWorkingWeight: '315 lbs',
+    deadliftWorkingWeight: '405 lbs',
+    dumbbellPress: '90 lb DBs',
+    tierCategory: 'Advanced (225–315)',
+  },
   privacy: {
     ghostMode: false,
     womenOnlyMode: false,
@@ -160,6 +167,13 @@ export const MOCK_PROFILES: UserProfile[] = [
     intent: 'platonic_only',
     reliabilityScore: 99.5,
     completedWorkoutsCount: 38,
+    strengthBenchmarks: {
+      benchWorkingWeight: '115 lbs',
+      squatWorkingWeight: '185 lbs',
+      deadliftWorkingWeight: '225 lbs',
+      dumbbellPress: '45 lb DBs',
+      tierCategory: 'Intermediate (135–225)',
+    },
     privacy: {
       ghostMode: false,
       womenOnlyMode: false,
@@ -921,4 +935,114 @@ export const MOCK_MATCHES: Match[] = [
       },
     ],
   }
+];
+
+export const MOCK_CREWS: GymCrew[] = [
+  {
+    id: 'crew_heavy_bench',
+    name: 'Saturday Heavy Bench Squad',
+    tagline: '3-plate working sets, lift-offs & heavy compounds',
+    gymName: 'Retro Fitness - Garfield',
+    modality: 'Powerlifting',
+    splitFocus: 'Heavy Push & Bench PRs',
+    memberCount: 4,
+    members: [
+      { id: 'user_me', name: 'Dave', photo: PROFILE_IMAGES.anthony_face, role: 'Leader' },
+      { id: 'user_marcus', name: 'Marcus', photo: PROFILE_IMAGES.marcus_face, role: 'Member' },
+      { id: 'user_tariq', name: 'Tariq', photo: PROFILE_IMAGES.tariq_face, role: 'Member' },
+      { id: 'user_anthony', name: 'Anthony', photo: PROFILE_IMAGES.richie_face, role: 'Member' },
+    ],
+    nextSession: {
+      date: 'Saturday, Aug 30',
+      time: '9:00 AM',
+      title: 'Flat Bench 1RM Lift-offs & Heavy Triples',
+    },
+    messages: [
+      {
+        id: 'cm_1',
+        senderId: 'user_marcus',
+        senderName: 'Marcus',
+        text: 'Who is ready for heavy triples this Saturday? Bringing the USAPL approved wrist wraps.',
+        timestamp: '10:14 AM',
+      },
+      {
+        id: 'cm_2',
+        senderId: 'user_tariq',
+        senderName: 'Tariq',
+        text: 'Count me in. Going for 275x5 on flat bench, will need a solid liftoff for set 2 & 3.',
+        timestamp: '10:20 AM',
+      },
+      {
+        id: 'cm_3',
+        senderId: 'user_me',
+        senderName: 'Dave',
+        text: 'I will spot the handoffs at Station 2. See you guys at 9!',
+        timestamp: '10:35 AM',
+      },
+    ],
+  },
+  {
+    id: 'crew_hyrox_relay',
+    name: 'Passaic HYROX Relay Club',
+    tagline: 'Sled push intervals, SkiErg & compromised running',
+    gymName: 'LA Fitness - Clifton Rt 3',
+    modality: 'HYROX',
+    splitFocus: 'Compromised Conditioning',
+    memberCount: 3,
+    members: [
+      { id: 'user_david', name: 'David', photo: PROFILE_IMAGES.david_face, role: 'Leader' },
+      { id: 'user_elena', name: 'Elena', photo: PROFILE_IMAGES.elena_face, role: 'Member' },
+      { id: 'user_maya', name: 'Maya', photo: PROFILE_IMAGES.maya_face, role: 'Member' },
+    ],
+    nextSession: {
+      date: 'Sunday, Aug 31',
+      time: '8:30 AM',
+      title: '100m Sled Push + 1000m SkiErg Simulation',
+    },
+    messages: [
+      {
+        id: 'cm_4',
+        senderId: 'user_david',
+        senderName: 'David',
+        text: 'Turf is reserved Sunday morning. Pacing 1:55/500m on the SkiErg splits.',
+        timestamp: 'Yesterday',
+      },
+      {
+        id: 'cm_5',
+        senderId: 'user_elena',
+        senderName: 'Elena',
+        text: 'Perfect, bringing electrolyte tabs and the timer.',
+        timestamp: 'Yesterday',
+      },
+    ],
+  },
+  {
+    id: 'crew_dawn_patrol',
+    name: 'Retro 6 AM Dawn Patrol',
+    tagline: 'In before the crowd, locked in, out before 7:30',
+    gymName: 'Retro Fitness - Garfield',
+    modality: 'Bodybuilding',
+    splitFocus: 'Full Hypertrophy & Delts',
+    memberCount: 4,
+    members: [
+      { id: 'user_gianna', name: 'Gianna', photo: PROFILE_IMAGES.gianna_face, role: 'Leader' },
+      { id: 'user_jessica', name: 'Jessica', photo: PROFILE_IMAGES.jessica_face, role: 'Member' },
+      { id: 'user_priya', name: 'Priya', photo: PROFILE_IMAGES.priya_face, role: 'Member' },
+      { id: 'user_me', name: 'Dave', photo: PROFILE_IMAGES.anthony_face, role: 'Member' },
+    ],
+    nextSession: {
+      date: 'Monday, Sep 1',
+      time: '6:00 AM',
+      title: 'Shoulders & Arms Volume Blitz',
+    },
+    messages: [
+      {
+        id: 'cm_6',
+        senderId: 'user_gianna',
+        senderName: 'Gianna',
+        text: 'Dumbbell rack is totally empty at 6:05 AM. Best time of the day to train!',
+        timestamp: '2 days ago',
+      },
+    ],
+  },
 ];

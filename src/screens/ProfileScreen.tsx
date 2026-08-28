@@ -26,6 +26,9 @@ import {
   AlertCircle,
   UserX,
   Lock,
+  Edit3,
+  Bell,
+  Sparkles,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { CURRENT_USER } from '../data/mockData';
@@ -33,10 +36,13 @@ import { ScheduleMatrix } from '../components/ScheduleMatrix';
 import { GymPickerModal } from '../components/GymPickerModal';
 import { DeleteAccountModal } from '../components/DeleteAccountModal';
 import { BlockContactsModal } from '../components/BlockContactsModal';
+import { EditProfileModal } from '../components/EditProfileModal';
+import { NotificationSettingsModal } from '../components/NotificationSettingsModal';
 import { COLORS, BORDER_RADIUS, SPACING } from '../constants/theme';
-import { ScheduleDay, TimeSlot } from '../types';
+import { ScheduleDay, TimeSlot, UserProfile } from '../types';
 
 export const ProfileScreen: React.FC = () => {
+  const [currentUser, setCurrentUser] = useState<UserProfile>(CURRENT_USER);
   const [ghostMode, setGhostMode] = useState(CURRENT_USER.privacy.ghostMode);
   const [showMen, setShowMen] = useState(true);
   const [showWomen, setShowWomen] = useState(true);
@@ -44,10 +50,14 @@ export const ProfileScreen: React.FC = () => {
   const [gymTier, setGymTier] = useState(CURRENT_USER.privacy.gymVisibility);
   const [mySchedule, setMySchedule] = useState<ScheduleDay[]>(CURRENT_USER.schedule);
   const [myGym, setMyGym] = useState(CURRENT_USER.primaryGym);
+  
+  // Modals
   const [gymPickerVisible, setGymPickerVisible] = useState(false);
   const [isAccountPaused, setIsAccountPaused] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [blockContactsVisible, setBlockContactsVisible] = useState(false);
+  const [editProfileVisible, setEditProfileVisible] = useState(false);
+  const [notificationSettingsVisible, setNotificationSettingsVisible] = useState(false);
   const [blockedCount, setBlockedCount] = useState(2);
 
   const toggleMen = () => {
@@ -82,6 +92,11 @@ export const ProfileScreen: React.FC = () => {
     CURRENT_USER.primaryGym = gym;
   };
 
+  const handleSaveProfileEdits = (updated: Partial<UserProfile>) => {
+    setCurrentUser((prev) => ({ ...prev, ...updated }));
+    Object.assign(CURRENT_USER, updated);
+  };
+
   const handleTogglePause = () => {
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -98,16 +113,21 @@ export const ProfileScreen: React.FC = () => {
     );
   };
 
-  const handleConfirmAccountDelete = () => {
-    console.log('Account deleted permanently for user:', CURRENT_USER.id);
-  };
-
-  const userPhotoSrc = typeof CURRENT_USER.photos[0] === 'string' ? { uri: CURRENT_USER.photos[0] } : CURRENT_USER.photos[0];
+  const userPhotoSrc = typeof currentUser.photos[0] === 'string' ? { uri: currentUser.photos[0] } : currentUser.photos[0];
+  const benchmarks = currentUser.strengthBenchmarks;
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
-        <Text style={styles.title}>Fitness DNA & Privacy</Text>
+        <Text style={styles.title}>Fitness DNA & Profile</Text>
+        <TouchableOpacity
+          style={styles.editHeaderBtn}
+          onPress={() => setEditProfileVisible(true)}
+          activeOpacity={0.7}
+        >
+          <Edit3 size={15} color={COLORS.primary} style={{ marginRight: 4 }} />
+          <Text style={styles.editHeaderText}>Edit</Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -133,7 +153,7 @@ export const ProfileScreen: React.FC = () => {
           <Image source={userPhotoSrc} style={styles.avatar} />
           <View style={styles.userInfo}>
             <View style={styles.userNameRow}>
-              <Text style={styles.userName}>{CURRENT_USER.name}, {CURRENT_USER.age}</Text>
+              <Text style={styles.userName}>{currentUser.name}, {currentUser.age}</Text>
               {isAccountPaused && (
                 <View style={styles.pausedBadge}>
                   <Text style={styles.pausedBadgeText}>PAUSED</Text>
@@ -152,15 +172,47 @@ export const ProfileScreen: React.FC = () => {
             <View style={styles.statsRow}>
               <View style={styles.statPill}>
                 <ShieldCheck size={12} color="#FBBF24" />
-                <Text style={styles.statText}>{CURRENT_USER.reliabilityScore}% Reliability</Text>
+                <Text style={styles.statText}>{currentUser.reliabilityScore}% Reliability</Text>
               </View>
               <View style={styles.statPill}>
                 <Dumbbell size={12} color={COLORS.primary} />
-                <Text style={styles.statText}>{CURRENT_USER.completedWorkoutsCount} Workouts</Text>
+                <Text style={styles.statText}>{currentUser.workoutSplit.split(' ')[0]}</Text>
               </View>
             </View>
           </View>
         </View>
+
+        {/* Working Weights & Strength Benchmarks */}
+        {benchmarks && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeaderRow}>
+              <Dumbbell size={16} color={COLORS.primary} />
+              <Text style={styles.sectionHeading}>LIFTING BENCHMARKS & WORKING WEIGHTS</Text>
+              <TouchableOpacity onPress={() => setEditProfileVisible(true)} style={{ marginLeft: 'auto' }}>
+                <Text style={{ color: COLORS.primary, fontSize: 11, fontWeight: '700' }}>Edit</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.benchmarksGrid}>
+              <View style={styles.benchmarkBox}>
+                <Text style={styles.benchmarkLabel}>BENCH PRESS</Text>
+                <Text style={styles.benchmarkVal}>{benchmarks.benchWorkingWeight || '225 lbs'}</Text>
+              </View>
+              <View style={styles.benchmarkBox}>
+                <Text style={styles.benchmarkLabel}>SQUAT</Text>
+                <Text style={styles.benchmarkVal}>{benchmarks.squatWorkingWeight || '315 lbs'}</Text>
+              </View>
+              <View style={styles.benchmarkBox}>
+                <Text style={styles.benchmarkLabel}>DEADLIFT</Text>
+                <Text style={styles.benchmarkVal}>{benchmarks.deadliftWorkingWeight || '405 lbs'}</Text>
+              </View>
+              <View style={styles.benchmarkBox}>
+                <Text style={styles.benchmarkLabel}>INCLINE DBs</Text>
+                <Text style={styles.benchmarkVal}>{benchmarks.dumbbellPress || '90 lb DBs'}</Text>
+              </View>
+            </View>
+          </View>
+        )}
 
         {/* Primary Home Gym Section */}
         <View style={styles.section}>
@@ -200,6 +252,31 @@ export const ProfileScreen: React.FC = () => {
             editable={true}
             onToggleSlot={handleToggleSlot}
           />
+        </View>
+
+        {/* Notifications & Spot Alerts */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderRow}>
+            <Bell size={16} color={COLORS.primary} />
+            <Text style={styles.sectionHeading}>NOTIFICATIONS & SPOT ALERTS</Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.notifCard}
+            onPress={() => setNotificationSettingsVisible(true)}
+            activeOpacity={0.8}
+          >
+            <View style={styles.notifIconCircle}>
+              <Bell size={18} color={COLORS.primary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.notifTitle}>Push Notifications & Spot Alerts</Text>
+              <Text style={styles.notifSub}>
+                Beacon check-in alerts, 2h countdown reminders, & SOS emergency pulses.
+              </Text>
+            </View>
+            <ChevronRight size={18} color={COLORS.textSecondary} />
+          </TouchableOpacity>
         </View>
 
         {/* Training Partner Gender Preference Filter */}
@@ -321,31 +398,6 @@ export const ProfileScreen: React.FC = () => {
               thumbColor="#FFFFFF"
             />
           </View>
-
-          {/* Public Gym Visibility */}
-          <View style={styles.settingCard}>
-            <View style={styles.settingTextCol}>
-              <Text style={styles.settingTitle}>Public Gym Visibility</Text>
-              <Text style={styles.settingDesc}>Control how specific your gym appears to strangers on swipe cards.</Text>
-              <View style={styles.tierPillsRow}>
-                {[
-                  { id: 'match_only', label: 'Match-Only (Recommended)' },
-                  { id: 'brand_only', label: 'Brand Only' },
-                  { id: 'exact', label: 'Exact Branch' },
-                ].map((tier) => (
-                  <TouchableOpacity
-                    key={tier.id}
-                    style={[styles.tierPill, gymTier === tier.id && styles.tierPillActive]}
-                    onPress={() => setGymTier(tier.id as any)}
-                  >
-                    <Text style={[styles.tierPillText, gymTier === tier.id && styles.tierPillTextActive]}>
-                      {tier.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-          </View>
         </View>
 
         {/* Account Management & Danger Zone */}
@@ -398,6 +450,14 @@ export const ProfileScreen: React.FC = () => {
         </View>
       </ScrollView>
 
+      {/* Edit Profile Modal */}
+      <EditProfileModal
+        visible={editProfileVisible}
+        user={currentUser}
+        onClose={() => setEditProfileVisible(false)}
+        onSave={handleSaveProfileEdits}
+      />
+
       {/* Change Gym Modal */}
       <GymPickerModal
         visible={gymPickerVisible}
@@ -406,11 +466,17 @@ export const ProfileScreen: React.FC = () => {
         onSelectGym={handleSelectNewGym}
       />
 
+      {/* Notification Settings Modal */}
+      <NotificationSettingsModal
+        visible={notificationSettingsVisible}
+        onClose={() => setNotificationSettingsVisible(false)}
+      />
+
       {/* Delete Account Modal */}
       <DeleteAccountModal
         visible={deleteModalVisible}
         onClose={() => setDeleteModalVisible(false)}
-        onConfirmDelete={handleConfirmAccountDelete}
+        onConfirmDelete={() => console.log('Deleted')}
       />
 
       {/* Block Contacts & People Modal */}
@@ -429,6 +495,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
     borderBottomWidth: 1,
@@ -438,6 +507,21 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '800',
     color: COLORS.textPrimary,
+  },
+  editHeaderBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: BORDER_RADIUS.full,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.3)',
+  },
+  editHeaderText: {
+    color: COLORS.primary,
+    fontSize: 12,
+    fontWeight: '700',
   },
   content: {
     padding: SPACING.lg,
@@ -556,6 +640,32 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     fontWeight: '600',
   },
+  benchmarksGrid: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  benchmarkBox: {
+    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderRadius: BORDER_RADIUS.md,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  benchmarkLabel: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: COLORS.textMuted,
+    marginBottom: 3,
+  },
+  benchmarkVal: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.primary,
+    textAlign: 'center',
+  },
   section: {
     marginBottom: SPACING.xl,
   },
@@ -614,6 +724,35 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     fontSize: 12,
     fontWeight: '700',
+  },
+  notifCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.lg,
+    borderWidth: 1,
+    borderColor: COLORS.cardBorder,
+  },
+  notifIconCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  notifTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+  },
+  notifSub: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+    lineHeight: 15,
   },
   blockContactsCard: {
     flexDirection: 'row',
@@ -738,33 +877,6 @@ const styles = StyleSheet.create({
   },
   genderTextActive: {
     color: '#FFFFFF',
-    fontWeight: '700',
-  },
-  tierPillsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginTop: 8,
-  },
-  tierPill: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: BORDER_RADIUS.full,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-  },
-  tierPillActive: {
-    backgroundColor: 'rgba(16, 185, 129, 0.2)',
-    borderColor: COLORS.primary,
-  },
-  tierPillText: {
-    fontSize: 10,
-    color: COLORS.textSecondary,
-    fontWeight: '600',
-  },
-  tierPillTextActive: {
-    color: COLORS.primary,
     fontWeight: '700',
   },
   deleteAccountCard: {
