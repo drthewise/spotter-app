@@ -715,7 +715,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
           </ScrollView>
         </KeyboardAvoidingView>
 
-        {/* 1. Scrollable Number & Weight Selector Dial Modal */}
+        {/* 1. Interactive Stepper, Plate Selector & Direct Numpad Modal */}
         <Modal visible={dialerVisible} transparent animationType="slide">
           <View style={styles.dialerOverlay}>
             <TouchableOpacity
@@ -737,109 +737,193 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 </TouchableOpacity>
               </View>
 
-              {/* Big Formatted Display */}
-              <View style={styles.dialerDisplayCard}>
-                <Text style={styles.dialerDisplayValue}>
-                  {selectedUnit === 'reps'
-                    ? `${selectedWeightNumber} reps`
-                    : selectedUnit === 's'
-                    ? `${selectedWeightNumber}s hold`
-                    : `${selectedWeightNumber} ${selectedUnit} ${selectedScheme}`.trim()}
-                </Text>
-                <Text style={styles.dialerDisplaySub}>Live Benchmark Preview</Text>
-              </View>
-
-              {/* Unit Selector: lbs vs kg vs reps vs sec */}
-              <View style={styles.unitSelectorRow}>
-                {(['lbs', 'kg', 'reps', 's'] as const).map((unit) => (
-                  <TouchableOpacity
-                    key={unit}
-                    style={[styles.unitBtn, selectedUnit === unit && styles.unitBtnActive]}
-                    onPress={() => {
-                      try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
-                      setSelectedUnit(unit);
-                    }}
-                  >
-                    <Text style={[styles.unitBtnText, selectedUnit === unit && styles.unitBtnTextActive]}>
-                      {unit.toUpperCase()}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              {/* Scrollable Horizontal Number Wheel / Ruler */}
-              <Text style={styles.dialerSectionLabel}>SCROLL TO SELECT WEIGHT / REPS</Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.numberWheelContent}
-              >
-                {WEIGHT_NUMBERS.map((num) => {
-                  const isSelected = selectedWeightNumber === num;
-                  return (
+              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
+                {/* Hero Weight Display with Stepper Buttons */}
+                <View style={styles.stepperDisplayBox}>
+                  <View style={styles.stepperBtnGroup}>
                     <TouchableOpacity
-                      key={num}
-                      style={[styles.numberCell, isSelected && styles.numberCellSelected]}
+                      style={styles.stepperDeltaBtn}
+                      onPress={() => {
+                        try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch (e) {}
+                        setSelectedWeightNumber((prev) => Math.max(0, prev - 45));
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.stepperDeltaText}>-45</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.stepperDeltaBtn}
                       onPress={() => {
                         try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
-                        setSelectedWeightNumber(num);
+                        setSelectedWeightNumber((prev) => Math.max(0, prev - 5));
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.stepperDeltaText}>-5</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.stepperCenterNumber}>
+                    <Text style={styles.stepperHeroNumber}>{selectedWeightNumber}</Text>
+                    <Text style={styles.stepperHeroUnit}>
+                      {selectedUnit.toUpperCase()} {selectedScheme}
+                    </Text>
+                  </View>
+
+                  <View style={styles.stepperBtnGroup}>
+                    <TouchableOpacity
+                      style={styles.stepperDeltaBtn}
+                      onPress={() => {
+                        try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
+                        setSelectedWeightNumber((prev) => prev + 5);
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.stepperDeltaText}>+5</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.stepperDeltaBtn}
+                      onPress={() => {
+                        try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch (e) {}
+                        setSelectedWeightNumber((prev) => prev + 45);
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.stepperDeltaText}>+45</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* Unit Selector: lbs vs kg vs reps vs sec */}
+                <View style={styles.unitSelectorRow}>
+                  {(['lbs', 'kg', 'reps', 's'] as const).map((unit) => (
+                    <TouchableOpacity
+                      key={unit}
+                      style={[styles.unitBtn, selectedUnit === unit && styles.unitBtnActive]}
+                      onPress={() => {
+                        try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
+                        setSelectedUnit(unit);
                       }}
                     >
-                      <Text style={[styles.numberCellText, isSelected && styles.numberCellTextSelected]}>
-                        {num}
+                      <Text style={[styles.unitBtnText, selectedUnit === unit && styles.unitBtnTextActive]}>
+                        {unit.toUpperCase()}
                       </Text>
                     </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
+                  ))}
+                </View>
 
-              {/* Quick Jump Barbell Presets */}
-              <Text style={styles.dialerSectionLabel}>POPULAR BARBELL & DB PRESETS</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.presetJumpRow}>
-                {QUICK_WEIGHT_PRESETS.map((p) => (
-                  <TouchableOpacity
-                    key={p.label}
-                    style={[styles.presetJumpBtn, selectedWeightNumber === p.val && styles.presetJumpBtnActive]}
-                    onPress={() => {
-                      try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
-                      setSelectedWeightNumber(p.val);
-                    }}
-                  >
-                    <Text style={[styles.presetJumpText, selectedWeightNumber === p.val && styles.presetJumpTextActive]}>
-                      {p.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-
-              {/* Working Scheme (3x8, 5x5, 1RM, 3x10) */}
-              {selectedUnit !== 'reps' && selectedUnit !== 's' && (
-                <>
-                  <Text style={styles.dialerSectionLabel}>SET & REP SCHEME</Text>
-                  <View style={styles.schemeRow}>
-                    {['(3x8)', '(3x10)', '(5x5)', '(1RM)', '(3x12)', ''].map((scheme) => (
+                {/* Plate & Barbell Quick-Select Chips */}
+                <Text style={styles.dialerSectionLabel}>POPULAR BARBELL & DUMBBELL LOADS</Text>
+                <View style={styles.plateChipGrid}>
+                  {[
+                    { label: '45 lbs (Bar)', val: 45 },
+                    { label: '95 lbs', val: 95 },
+                    { label: '135 lbs (1 Plate)', val: 135 },
+                    { label: '185 lbs', val: 185 },
+                    { label: '225 lbs (2 Plates)', val: 225 },
+                    { label: '275 lbs', val: 275 },
+                    { label: '315 lbs (3 Plates)', val: 315 },
+                    { label: '405 lbs (4 Plates)', val: 405 },
+                  ].map((p) => {
+                    const isSelected = selectedWeightNumber === p.val;
+                    return (
                       <TouchableOpacity
-                        key={scheme || 'None'}
-                        style={[styles.schemeBtn, selectedScheme === scheme && styles.schemeBtnActive]}
+                        key={p.label}
+                        style={[styles.plateChip, isSelected && styles.plateChipSelected]}
                         onPress={() => {
-                          try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
-                          setSelectedScheme(scheme);
+                          try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch (e) {}
+                          setSelectedWeightNumber(p.val);
                         }}
+                        activeOpacity={0.8}
                       >
-                        <Text style={[styles.schemeBtnText, selectedScheme === scheme && styles.schemeBtnTextActive]}>
-                          {scheme || 'Weight Only'}
+                        <Text style={[styles.plateChipText, isSelected && styles.plateChipTextSelected]}>
+                          {p.label}
                         </Text>
                       </TouchableOpacity>
-                    ))}
-                  </View>
-                </>
-              )}
+                    );
+                  })}
+                </View>
 
-              {/* Apply Button */}
-              <TouchableOpacity style={styles.applyWeightBtn} onPress={applyWeightFromDialer}>
-                <Check size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
-                <Text style={styles.applyWeightBtnText}>Apply to {benchmarks[editingBenchmarkIdx]?.name || 'Lift'}</Text>
-              </TouchableOpacity>
+                {/* Built-in Clean Gym Keypad / Numpad */}
+                <Text style={styles.dialerSectionLabel}>CUSTOM NUMBER KEYPAD</Text>
+                <View style={styles.keypadGrid}>
+                  {[
+                    ['1', '2', '3'],
+                    ['4', '5', '6'],
+                    ['7', '8', '9'],
+                    ['CLEAR', '0', '⌫'],
+                  ].map((row, rowIdx) => (
+                    <View key={rowIdx} style={styles.keypadRow}>
+                      {row.map((key) => (
+                        <TouchableOpacity
+                          key={key}
+                          style={[
+                            styles.keypadKey,
+                            (key === 'CLEAR' || key === '⌫') && styles.keypadKeyAction,
+                          ]}
+                          onPress={() => {
+                            try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
+                            if (key === 'CLEAR') {
+                              setSelectedWeightNumber(0);
+                            } else if (key === '⌫') {
+                              const str = selectedWeightNumber.toString();
+                              const newStr = str.length > 1 ? str.slice(0, -1) : '0';
+                              setSelectedWeightNumber(parseInt(newStr, 10));
+                            } else {
+                              const str = selectedWeightNumber === 0 ? key : selectedWeightNumber.toString() + key;
+                              const num = parseInt(str, 10);
+                              if (num <= 1500) {
+                                setSelectedWeightNumber(num);
+                              }
+                            }
+                          }}
+                          activeOpacity={0.7}
+                        >
+                          <Text
+                            style={[
+                              styles.keypadKeyText,
+                              (key === 'CLEAR' || key === '⌫') && styles.keypadKeyActionText,
+                            ]}
+                          >
+                            {key}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  ))}
+                </View>
+
+                {/* Working Scheme (3x8, 5x5, 1RM, 3x10) */}
+                {selectedUnit !== 'reps' && selectedUnit !== 's' && (
+                  <>
+                    <Text style={styles.dialerSectionLabel}>OPTIONAL REP SCHEME</Text>
+                    <View style={styles.schemeRow}>
+                      {['', '(3x8)', '(3x10)', '(5x5)', '(1RM)', '(3x12)'].map((scheme) => (
+                        <TouchableOpacity
+                          key={scheme || 'None'}
+                          style={[styles.schemeBtn, selectedScheme === scheme && styles.schemeBtnActive]}
+                          onPress={() => {
+                            try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
+                            setSelectedScheme(scheme);
+                          }}
+                        >
+                          <Text style={[styles.schemeBtnText, selectedScheme === scheme && styles.schemeBtnTextActive]}>
+                            {scheme || 'Weight Only'}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </>
+                )}
+
+                {/* Apply Button */}
+                <TouchableOpacity style={styles.applyWeightBtn} onPress={applyWeightFromDialer}>
+                  <Check size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
+                  <Text style={styles.applyWeightBtnText}>
+                    Apply {selectedWeightNumber} {selectedUnit} {selectedScheme}
+                  </Text>
+                </TouchableOpacity>
+              </ScrollView>
             </View>
           </View>
         </Modal>
@@ -898,6 +982,116 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
 };
 
 const styles = StyleSheet.create({
+  stepperDisplayBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.xl,
+    marginBottom: SPACING.md,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.3)',
+  },
+  stepperBtnGroup: {
+    gap: 8,
+  },
+  stepperDeltaBtn: {
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: BORDER_RADIUS.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  stepperDeltaText: {
+    color: '#34D399',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  stepperCenterNumber: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  stepperHeroNumber: {
+    fontSize: 38,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    letterSpacing: 1,
+  },
+  stepperHeroUnit: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: COLORS.primary,
+    marginTop: 2,
+    letterSpacing: 0.5,
+  },
+  plateChipGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: SPACING.md,
+  },
+  plateChip: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  plateChipSelected: {
+    backgroundColor: 'rgba(16, 185, 129, 0.25)',
+    borderColor: COLORS.primary,
+  },
+  plateChipText: {
+    color: COLORS.textSecondary,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  plateChipTextSelected: {
+    color: '#34D399',
+    fontWeight: '900',
+  },
+  keypadGrid: {
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderRadius: BORDER_RADIUS.lg,
+    padding: 8,
+    gap: 8,
+    marginBottom: SPACING.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  keypadRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  keypadKey: {
+    flex: 1,
+    height: 44,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderRadius: BORDER_RADIUS.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  keypadKeyAction: {
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderColor: 'rgba(239, 68, 68, 0.2)',
+  },
+  keypadKeyText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  keypadKeyActionText: {
+    color: '#F87171',
+    fontSize: 11,
+    fontWeight: '800',
+  },
   safeArea: {
     flex: 1,
     backgroundColor: '#0B0D14',
