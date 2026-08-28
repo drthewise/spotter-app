@@ -11,11 +11,13 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { ArrowLeft, Dumbbell, Send, ShieldCheck, CheckCircle, ShieldAlert, Star } from 'lucide-react-native';
+import { ArrowLeft, Dumbbell, Send, ShieldCheck, CheckCircle, ShieldAlert, Star, ChevronRight } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
 import { Match, ChatMessage, WorkoutReview } from '../types';
 import { COLORS, BORDER_RADIUS, SPACING } from '../constants/theme';
 import { ReportUserModal } from '../components/ReportUserModal';
 import { PostWorkoutReviewModal } from '../components/PostWorkoutReviewModal';
+import { ProfileDetailsModal } from '../components/ProfileDetailsModal';
 import { CURRENT_USER } from '../data/mockData';
 
 interface ChatDetailScreenProps {
@@ -43,6 +45,7 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
   const [checkedIn, setCheckedIn] = useState(match.activeSession?.userCheckedIn || false);
   const [reportModalVisible, setReportModalVisible] = useState(false);
   const [reviewModalVisible, setReviewModalVisible] = useState(false);
+  const [profileModalVisible, setProfileModalVisible] = useState(false);
   const [sessionReviewed, setSessionReviewed] = useState(match.activeSession?.reviewed || false);
 
   useEffect(() => {
@@ -88,12 +91,27 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
         <TouchableOpacity onPress={onBack} style={styles.backBtn}>
           <ArrowLeft size={20} color={COLORS.textPrimary} />
         </TouchableOpacity>
-        <Image source={partnerPhotoSrc} style={styles.avatar} />
-        <View style={styles.headerInfo}>
-          <Text style={styles.name}>{match.partner.name}</Text>
-          <Text style={styles.gymName}>📍 {match.partner.primaryGym.branchName}</Text>
-        </View>
 
+        {/* Tappable Profile Avatar & Name */}
+        <TouchableOpacity
+          style={styles.partnerProfileTouch}
+          onPress={() => {
+            try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
+            setProfileModalVisible(true);
+          }}
+          activeOpacity={0.7}
+        >
+          <Image source={partnerPhotoSrc} style={styles.avatar} />
+          <View style={styles.headerInfo}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.name}>{match.partner.name}</Text>
+              <ChevronRight size={13} color={COLORS.textMuted} style={{ marginLeft: 2 }} />
+            </View>
+            <Text style={styles.gymName} numberOfLines={1}>📍 {match.partner.primaryGym.branchName}</Text>
+          </View>
+        </TouchableOpacity>
+
+        {/* Header Actions */}
         <View style={styles.headerActions}>
           <View style={styles.reliabilityPill}>
             <ShieldCheck size={12} color="#FBBF24" />
@@ -193,6 +211,13 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
         </View>
       </KeyboardAvoidingView>
 
+      {/* Profile Details Modal when tapping avatar/name */}
+      <ProfileDetailsModal
+        visible={profileModalVisible}
+        profile={match.partner}
+        onClose={() => setProfileModalVisible(false)}
+      />
+
       {/* Report & Block User Modal */}
       <ReportUserModal
         visible={reportModalVisible}
@@ -230,6 +255,13 @@ const styles = StyleSheet.create({
   },
   backBtn: {
     padding: 6,
+    marginRight: 4,
+  },
+  partnerProfileTouch: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    paddingVertical: 2,
     marginRight: 6,
   },
   avatar: {
