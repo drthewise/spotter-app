@@ -11,9 +11,10 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { ArrowLeft, Dumbbell, Send, ShieldCheck, CheckCircle } from 'lucide-react-native';
+import { ArrowLeft, Dumbbell, Send, ShieldCheck, CheckCircle, ShieldAlert } from 'lucide-react-native';
 import { Match, ChatMessage } from '../types';
 import { COLORS, BORDER_RADIUS, SPACING } from '../constants/theme';
+import { ReportUserModal } from '../components/ReportUserModal';
 import { CURRENT_USER } from '../data/mockData';
 
 interface ChatDetailScreenProps {
@@ -39,8 +40,8 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
   const [messages, setMessages] = useState<ChatMessage[]>(() => getInitialMessages(match));
   const [inputText, setInputText] = useState('');
   const [checkedIn, setCheckedIn] = useState(match.activeSession?.userCheckedIn || false);
+  const [reportModalVisible, setReportModalVisible] = useState(false);
 
-  // When match changes, update local state
   useEffect(() => {
     setMessages(getInitialMessages(match));
     setCheckedIn(match.activeSession?.userCheckedIn || false);
@@ -76,9 +77,19 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
           <Text style={styles.name}>{match.partner.name}</Text>
           <Text style={styles.gymName}>📍 {match.partner.primaryGym.branchName}</Text>
         </View>
-        <View style={styles.reliabilityPill}>
-          <ShieldCheck size={12} color="#FBBF24" />
-          <Text style={styles.reliabilityText}>{match.partner.reliabilityScore.toFixed(0)}%</Text>
+
+        <View style={styles.headerActions}>
+          <View style={styles.reliabilityPill}>
+            <ShieldCheck size={12} color="#FBBF24" />
+            <Text style={styles.reliabilityText}>{match.partner.reliabilityScore.toFixed(0)}%</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.reportBtn}
+            onPress={() => setReportModalVisible(true)}
+            activeOpacity={0.7}
+          >
+            <ShieldAlert size={16} color="#F87171" />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -147,6 +158,17 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ match, onBac
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+
+      {/* Report & Block User Modal */}
+      <ReportUserModal
+        visible={reportModalVisible}
+        user={match.partner}
+        onClose={() => setReportModalVisible(false)}
+        onReportSubmitted={() => {
+          setReportModalVisible(false);
+          onBack();
+        }}
+      />
     </SafeAreaView>
   );
 };
@@ -186,6 +208,11 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: COLORS.badgeGymText,
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   reliabilityPill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -199,6 +226,16 @@ const styles = StyleSheet.create({
     color: '#FBBF24',
     fontSize: 11,
     fontWeight: '700',
+  },
+  reportBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.25)',
   },
   workoutBanner: {
     flexDirection: 'row',

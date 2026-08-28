@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   Image,
   Dimensions,
-  SafeAreaView,
 } from 'react-native';
 import {
   X,
@@ -18,12 +17,14 @@ import {
   Zap,
   Heart,
   ChevronDown,
+  ShieldAlert,
 } from 'lucide-react-native';
 import { UserProfile } from '../types';
 import { COLORS, BORDER_RADIUS, SPACING } from '../constants/theme';
 import { GymBadge } from './GymBadge';
 import { ReliabilityBadge } from './ReliabilityBadge';
 import { ScheduleMatrix } from './ScheduleMatrix';
+import { ReportUserModal } from './ReportUserModal';
 import { CURRENT_USER } from '../data/mockData';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -43,6 +44,8 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
   onRequestSpot,
   onConnect,
 }) => {
+  const [reportModalVisible, setReportModalVisible] = useState(false);
+
   const isSameGym = profile.primaryGym.brand === CURRENT_USER.primaryGym.brand;
   const avatarPhoto = profile.photos[1] || profile.photos[0];
   const avatarSource = typeof avatarPhoto === 'string' ? { uri: avatarPhoto } : avatarPhoto;
@@ -51,15 +54,26 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
     <Modal visible={visible} animationType="slide" transparent={true}>
       <View style={styles.overlay}>
         <View style={styles.sheetContainer}>
-          {/* Top Handle / Close Bar */}
+          {/* Top Handle / Header Bar */}
           <View style={styles.headerBar}>
             <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
               <ChevronDown size={24} color={COLORS.textSecondary} />
             </TouchableOpacity>
+
             <View style={styles.dragPill} />
-            <TouchableOpacity style={styles.closeRoundBtn} onPress={onClose}>
-              <X size={18} color={COLORS.textPrimary} />
-            </TouchableOpacity>
+
+            <View style={styles.headerRightActions}>
+              <TouchableOpacity
+                style={styles.reportBtn}
+                onPress={() => setReportModalVisible(true)}
+                activeOpacity={0.7}
+              >
+                <ShieldAlert size={18} color="#F87171" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.closeRoundBtn} onPress={onClose}>
+                <X size={18} color={COLORS.textPrimary} />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <ScrollView
@@ -145,6 +159,7 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
                 partnerSchedule={profile.schedule}
                 isMasked={profile.privacy.scheduleVisibility === 'overlap_only'}
                 overlapScore={88}
+                editable={false}
               />
             </View>
 
@@ -176,7 +191,28 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
                 </TouchableOpacity>
               )}
             </View>
+
+            {/* Report & Block Lifter Button */}
+            <TouchableOpacity
+              style={styles.reportRowBtn}
+              onPress={() => setReportModalVisible(true)}
+              activeOpacity={0.7}
+            >
+              <ShieldAlert size={15} color="#F87171" style={{ marginRight: 6 }} />
+              <Text style={styles.reportRowText}>Report or Block {profile.name}</Text>
+            </TouchableOpacity>
           </ScrollView>
+
+          {/* Report User Modal */}
+          <ReportUserModal
+            visible={reportModalVisible}
+            user={profile}
+            onClose={() => setReportModalVisible(false)}
+            onReportSubmitted={() => {
+              setReportModalVisible(false);
+              onClose();
+            }}
+          />
         </View>
       </View>
     </Modal>
@@ -190,7 +226,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheetContainer: {
-    height: SCREEN_HEIGHT * 0.82,
+    height: SCREEN_HEIGHT * 0.84,
     backgroundColor: '#11141F',
     borderTopLeftRadius: BORDER_RADIUS.xl + 4,
     borderTopRightRadius: BORDER_RADIUS.xl + 4,
@@ -214,6 +250,21 @@ const styles = StyleSheet.create({
     height: 4,
     borderRadius: 2,
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  headerRightActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  reportBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.25)',
   },
   closeRoundBtn: {
     width: 32,
@@ -351,7 +402,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
     marginTop: SPACING.md,
-    marginBottom: SPACING.xl,
+    marginBottom: SPACING.md,
   },
   superSpotActionBtn: {
     flex: 1,
@@ -379,6 +430,23 @@ const styles = StyleSheet.create({
   connectActionText: {
     color: '#FFFFFF',
     fontSize: 13,
+    fontWeight: '700',
+  },
+  reportRowBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    marginTop: SPACING.sm,
+    marginBottom: SPACING.xl,
+    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: 'rgba(239, 68, 68, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.15)',
+  },
+  reportRowText: {
+    color: '#F87171',
+    fontSize: 12,
     fontWeight: '700',
   },
 });
