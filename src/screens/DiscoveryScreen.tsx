@@ -85,21 +85,7 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({ onNavigateToCh
           </View>
         </View>
 
-        <View style={styles.headerRightActions}>
-          <TouchableOpacity
-            style={styles.headerIconBtn}
-            onPress={() => {
-              try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
-              cardDeckRef.current?.undo();
-            }}
-          >
-            <RotateCcw size={18} color={COLORS.textSecondary} />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.headerIconBtn} onPress={() => setFilterModalVisible(true)}>
-            <SlidersHorizontal size={18} color={COLORS.textPrimary} />
-          </TouchableOpacity>
-        </View>
+        <View style={styles.headerRightPlaceholder} />
       </View>
 
       <View style={styles.gymContextBar}>
@@ -166,6 +152,7 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({ onNavigateToCh
 };
 
 const styles = StyleSheet.create({
+  headerRightPlaceholder: { width: 40 },
   safeArea: {
     flex: 1,
     backgroundColor: COLORS.background,

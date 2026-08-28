@@ -188,19 +188,50 @@ export const CardDeck = forwardRef<CardDeckRef, CardDeckProps>(({
       </View>
 
       <View style={styles.actionsBar}>
-        <TouchableOpacity style={[styles.mainActionBtn, styles.passBtn]} onPress={() => forceSwipe('left')}>
+        {/* 1. Refresh / Undo (Far Left) */}
+        <TouchableOpacity
+          style={[styles.smallActionBtn, currentIndex === 0 && styles.btnDisabled]}
+          onPress={undoSwipe}
+          disabled={currentIndex === 0}
+          activeOpacity={0.7}
+        >
+          <RotateCcw size={18} color={currentIndex === 0 ? COLORS.textMuted : COLORS.textPrimary} />
+        </TouchableOpacity>
+
+        {/* 2. Pass (Left Center) */}
+        <TouchableOpacity
+          style={[styles.mainActionBtn, styles.passBtn]}
+          onPress={() => forceSwipe('left')}
+          activeOpacity={0.8}
+        >
           <X size={28} color={COLORS.pass} strokeWidth={2.5} />
         </TouchableOpacity>
 
+        {/* 3. Schedule / Super-Spot (Dead Center) */}
         <TouchableOpacity
           style={[styles.mainActionBtn, styles.superSpotBtn]}
           onPress={() => setSuperSpotModalVisible(true)}
+          activeOpacity={0.8}
         >
-          <Zap size={26} color="#FFFFFF" />
+          <Zap size={24} color="#FFFFFF" />
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.mainActionBtn, styles.connectBtn]} onPress={() => forceSwipe('right')}>
+        {/* 4. Connect (Right Center) */}
+        <TouchableOpacity
+          style={[styles.mainActionBtn, styles.connectBtn]}
+          onPress={() => forceSwipe('right')}
+          activeOpacity={0.8}
+        >
           <Heart size={28} color={COLORS.connect} strokeWidth={2.5} fill={COLORS.connect} />
+        </TouchableOpacity>
+
+        {/* 5. Filters (Far Right) */}
+        <TouchableOpacity
+          style={styles.smallActionBtn}
+          onPress={onOpenFilter}
+          activeOpacity={0.7}
+        >
+          <SlidersHorizontal size={18} color={COLORS.textPrimary} />
         </TouchableOpacity>
       </View>
 
@@ -271,9 +302,8 @@ const styles = StyleSheet.create({
   actionsBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 24,
-    width: '100%',
+    justifyContent: 'space-between',
+    width: SCREEN_WIDTH * 0.92,
     paddingVertical: SPACING.md,
   },
   smallActionBtn: {
@@ -287,7 +317,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.cardBorder,
   },
   btnDisabled: {
-    opacity: 0.4,
+    opacity: 0.35,
   },
   mainActionBtn: {
     width: 62,
