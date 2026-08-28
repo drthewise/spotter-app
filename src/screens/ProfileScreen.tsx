@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   View,
+  Modal,
   Text,
   StyleSheet,
   SafeAreaView,
@@ -11,6 +12,7 @@ import {
   Alert,
 } from 'react-native';
 import {
+  X,
   Shield,
   Clock,
   Dumbbell,
@@ -59,6 +61,8 @@ export const ProfileScreen: React.FC = () => {
   const [editProfileVisible, setEditProfileVisible] = useState(false);
   const [notificationSettingsVisible, setNotificationSettingsVisible] = useState(false);
   const [blockedCount, setBlockedCount] = useState(2);
+  const [fullscreenPhotoVisible, setFullscreenPhotoVisible] = useState(false);
+  const [fullscreenPhotoIdx, setFullscreenPhotoIdx] = useState(0);
 
   const toggleMen = () => {
     try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
@@ -476,11 +480,146 @@ export const ProfileScreen: React.FC = () => {
         onClose={() => setBlockContactsVisible(false)}
         onUpdateCount={setBlockedCount}
       />
+    
+      {/* Fullscreen Photo Lightbox for Profile Photos */}
+      <Modal visible={fullscreenPhotoVisible} transparent={false} animationType="fade">
+        <SafeAreaView style={styles.fullscreenModalContainer}>
+          <View style={styles.fullscreenHeader}>
+            <TouchableOpacity onPress={() => setFullscreenPhotoVisible(false)} style={styles.fullscreenCloseBtn}>
+              <X size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+            <Text style={styles.fullscreenCounter}>
+              {fullscreenPhotoIdx + 1} of {currentUser.photos.length}
+            </Text>
+            <View style={{ width: 40 }} />
+          </View>
+
+          <View style={styles.fullscreenMainImgArea}>
+            <Image
+              source={typeof currentUser.photos[fullscreenPhotoIdx] === 'string' ? { uri: currentUser.photos[fullscreenPhotoIdx] } : currentUser.photos[fullscreenPhotoIdx]}
+              style={styles.fullscreenImage}
+              resizeMode="contain"
+            />
+          </View>
+
+          {/* Bottom Thumbnails */}
+          <View style={styles.fullscreenThumbStrip}>
+            {currentUser.photos.map((p, idx) => (
+              <TouchableOpacity
+                key={idx}
+                onPress={() => {
+                  try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
+                  setFullscreenPhotoIdx(idx);
+                }}
+                style={[
+                  styles.fullscreenThumb,
+                  fullscreenPhotoIdx === idx && styles.fullscreenThumbActive,
+                ]}
+              >
+                <Image source={typeof p === 'string' ? { uri: p } : p} style={styles.thumbImg} />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </SafeAreaView>
+      </Modal>
+
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  managePhotosText: {
+    color: COLORS.primary,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  profileGalleryRow: {
+    gap: 10,
+    paddingVertical: 4,
+  },
+  profileGalleryCard: {
+    width: 110,
+    height: 155,
+    borderRadius: BORDER_RADIUS.md,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    position: 'relative',
+  },
+  profileGalleryImg: {
+    width: '100%',
+    height: '100%',
+  },
+  photoIndexTag: {
+    position: 'absolute',
+    bottom: 6,
+    left: 6,
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  photoIndexTagText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '800',
+  },
+  fullscreenModalContainer: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
+  fullscreenHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+  },
+  fullscreenCloseBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullscreenCounter: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  fullscreenMainImgArea: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullscreenImage: {
+    width: '100%',
+    height: '100%',
+  },
+  fullscreenThumbStrip: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 12,
+    paddingVertical: SPACING.lg,
+    backgroundColor: '#000000',
+  },
+  fullscreenThumb: {
+    width: 50,
+    height: 50,
+    borderRadius: 6,
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  fullscreenThumbActive: {
+    borderColor: COLORS.primary,
+    borderWidth: 2,
+  },
+  thumbImg: {
+    width: '100%',
+    height: '100%',
+  },
   coachQuickCard: {
     flexDirection: 'row',
     alignItems: 'center',

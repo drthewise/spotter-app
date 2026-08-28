@@ -29,6 +29,7 @@ import {
 import * as Haptics from 'expo-haptics';
 import { COLORS, BORDER_RADIUS, SPACING } from '../constants/theme';
 import { UserProfile, ExperienceLevel, Modality, WorkoutSplit, BenchmarkItem } from '../types';
+import { PROFILE_IMAGES } from '../constants/images';
 
 interface EditProfileModalProps {
   visible: boolean;
@@ -133,6 +134,8 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   onClose,
   onSave,
 }) => {
+  const [photos, setPhotos] = useState<(string | any)[]>(user.photos && user.photos.length > 0 ? [...user.photos] : [PROFILE_IMAGES.anthony_full, PROFILE_IMAGES.anthony_face]);
+  const [photoPickerVisible, setPhotoPickerVisible] = useState(false);
   const [bio, setBio] = useState(user.bio);
   const [workoutSplit, setWorkoutSplit] = useState<WorkoutSplit>(user.workoutSplit);
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>(user.experienceLevel);
@@ -151,6 +154,45 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
       ];
 
   const [benchmarks, setBenchmarks] = useState<BenchmarkItem[]>(initialBenchmarks);
+
+  const setAsPrimaryPhoto = (index: number) => {
+    try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch (e) {}
+    if (index === 0) return;
+    const newPhotos = [...photos];
+    const [selected] = newPhotos.splice(index, 1);
+    newPhotos.unshift(selected);
+    setPhotos(newPhotos);
+  };
+
+  const removePhoto = (index: number) => {
+    try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch (e) {}
+    if (photos.length <= 1) {
+      Alert.alert('Cannot Remove', 'You must have at least one profile photo.');
+      return;
+    }
+    const newPhotos = [...photos];
+    newPhotos.splice(index, 1);
+    setPhotos(newPhotos);
+  };
+
+  const addPresetPhoto = (imageSrc: any) => {
+    try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch (e) {}
+    setPhotos((prev) => [...prev, imageSrc]);
+    setPhotoPickerVisible(false);
+  };
+
+  const setPrimaryFromPicker = (imageSrc: any) => {
+    try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch (e) {}
+    // If photo is already in list, move to front. Otherwise prepend.
+    const existingIdx = photos.findIndex((p) => p === imageSrc);
+    if (existingIdx >= 0) {
+      setAsPrimaryPhoto(existingIdx);
+    } else {
+      setPhotos((prev) => [imageSrc, ...prev]);
+    }
+    setPhotoPickerVisible(false);
+  };
+
 
   const applyPreset = (preset: typeof BENCHMARK_PRESETS[0]) => {
     try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch (e) {}
@@ -222,19 +264,91 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
           style={{ flex: 1 }}
         >
           <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-            {/* Profile Avatar Header */}
+            {/* Profile Avatar Header with Interactive Change */}
             <View style={styles.avatarSection}>
-              <Image source={userPhotoSrc} style={styles.avatar} />
+              <TouchableOpacity
+                onPress={() => setPhotoPickerVisible(true)}
+                activeOpacity={0.85}
+                style={styles.avatarTouchWrapper}
+              >
+                <Image
+                  source={typeof photos[0] === 'string' ? { uri: photos[0] } : photos[0]}
+                  style={styles.avatar}
+                />
+                <View style={styles.avatarCameraBadge}>
+                  <Camera size={14} color="#FFFFFF" />
+                </View>
+              </TouchableOpacity>
+
               <TouchableOpacity
                 style={styles.changePhotoPill}
-                onPress={() => {
-                  try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch (e) {}
-                  Alert.alert('Photo Updated', 'Primary profile photo synced from gallery.');
-                }}
+                onPress={() => setPhotoPickerVisible(true)}
+                activeOpacity={0.8}
               >
-                <Camera size={13} color="#FFFFFF" style={{ marginRight: 4 }} />
-                <Text style={styles.changePhotoText}>Change Photo</Text>
+                <Camera size={13} color="#FFFFFF" style={{ marginRight: 5 }} />
+                <Text style={styles.changePhotoText}>Change Primary Photo</Text>
               </TouchableOpacity>
+            </View>
+
+            {/* Photos & Gym Fit Checks Gallery Reel */}
+            <View style={styles.section}>
+              <View style={styles.photoSectionHeader}>
+                <Text style={styles.sectionHeader}>PHOTOS & GYM FIT CHECKS ({photos.length})</Text>
+                <TouchableOpacity onPress={() => setPhotoPickerVisible(true)}>
+                  <Text style={styles.addPhotoText}>+ Add Photo</Text>
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.galleryRow}>
+                {photos.map((p, idx) => {
+                  const isPrimary = idx === 0;
+                  const src = typeof p === 'string' ? { uri: p } : p;
+                  return (
+                    <View key={idx} style={[styles.galleryCard, isPrimary && styles.galleryCardPrimary]}>
+                      <Image source={src} style={styles.galleryImage} />
+                      
+                      {/* Primary / Index Badge */}
+                      <View style={[styles.photoTag, isPrimary && styles.photoTagPrimary]}>
+                        <Text style={styles.photoTagText}>{isPrimary ? '★ Primary' : `#${idx + 1}`}</Text>
+                      </View>
+
+                      {/* Card Action Controls */}
+                      <View style={styles.cardActionsOverlay}>
+                        {!isPrimary && (
+                          <TouchableOpacity
+                            style={styles.setPrimaryBtn}
+                            onPress={() => setAsPrimaryPhoto(idx)}
+                            activeOpacity={0.8}
+                          >
+                            <Text style={styles.setPrimaryBtnText}>Make Primary</Text>
+                          </TouchableOpacity>
+                        )}
+                        {photos.length > 1 && (
+                          <TouchableOpacity
+                            style={styles.deletePhotoBtn}
+                            onPress={() => removePhoto(idx)}
+                            activeOpacity={0.8}
+                          >
+                            <Trash2 size={13} color="#FFFFFF" />
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    </View>
+                  );
+                })}
+
+                {/* Add Photo Card */}
+                <TouchableOpacity
+                  style={styles.addPhotoCard}
+                  onPress={() => setPhotoPickerVisible(true)}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.addPhotoIconCircle}>
+                    <Plus size={20} color={COLORS.primary} />
+                  </View>
+                  <Text style={styles.addPhotoCardText}>Add Fit Check</Text>
+                </TouchableOpacity>
+              </ScrollView>
             </View>
 
             {/* Bio & Workout Goals */}
@@ -396,6 +510,210 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
 };
 
 const styles = StyleSheet.create({
+  section: {
+    marginBottom: SPACING.lg,
+  },
+  avatarTouchWrapper: {
+    position: 'relative',
+  },
+  avatarCameraBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: COLORS.primary,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#11141F',
+  },
+  photoSectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
+  },
+  addPhotoText: {
+    color: COLORS.primary,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  galleryRow: {
+    gap: 12,
+    paddingVertical: 4,
+  },
+  galleryCard: {
+    width: 120,
+    height: 165,
+    borderRadius: BORDER_RADIUS.md,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    position: 'relative',
+  },
+  galleryCardPrimary: {
+    borderColor: COLORS.primary,
+    borderWidth: 2,
+  },
+  galleryImage: {
+    width: '100%',
+    height: '100%',
+  },
+  photoTag: {
+    position: 'absolute',
+    top: 6,
+    left: 6,
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  photoTagPrimary: {
+    backgroundColor: COLORS.primary,
+  },
+  photoTagText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '800',
+  },
+  cardActionsOverlay: {
+    position: 'absolute',
+    bottom: 6,
+    left: 6,
+    right: 6,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  setPrimaryBtn: {
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  setPrimaryBtnText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '700',
+  },
+  deletePhotoBtn: {
+    backgroundColor: 'rgba(239, 68, 68, 0.8)',
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addPhotoCard: {
+    width: 110,
+    height: 165,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: 'rgba(16, 185, 129, 0.4)',
+    backgroundColor: 'rgba(16, 185, 129, 0.05)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: SPACING.sm,
+  },
+  addPhotoIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  addPhotoCardText: {
+    color: COLORS.primary,
+    fontSize: 11,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  pickerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    justifyContent: 'flex-end',
+  },
+  pickerBackdropTouch: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  pickerSheet: {
+    backgroundColor: '#11141F',
+    borderTopLeftRadius: BORDER_RADIUS.xl + 4,
+    borderTopRightRadius: BORDER_RADIUS.xl + 4,
+    maxHeight: '85%',
+    padding: SPACING.xl,
+    paddingTop: 10,
+    paddingBottom: 40,
+    borderTopWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  pickerDragPill: {
+    width: 40,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255, 255, 255, 0.35)',
+    alignSelf: 'center',
+    marginBottom: SPACING.md,
+  },
+  pickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+  },
+  pickerTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: COLORS.textPrimary,
+  },
+  pickerSub: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+  },
+  pickerCloseBtn: {
+    padding: 6,
+  },
+  pickerGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    paddingBottom: 20,
+  },
+  pickerGridItem: {
+    width: '31%',
+    height: 140,
+    borderRadius: BORDER_RADIUS.md,
+    overflow: 'hidden',
+    position: 'relative',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  pickerGridImg: {
+    width: '100%',
+    height: '100%',
+  },
+  pickerSelectOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    paddingVertical: 4,
+    alignItems: 'center',
+  },
+  pickerSelectText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '700',
+  },
   coachModeToggleRow: {
     flexDirection: 'row',
     alignItems: 'center',
